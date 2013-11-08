@@ -1,6 +1,6 @@
 package org.nutz.zdoc;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.nutz.css.ZCssStyle;
@@ -35,11 +35,28 @@ public class ZDocEle {
     private List<ZDocEle> children;
 
     public String toString() {
-        return String.format("{%s'%s'[%s](%s)}",
+        return toString(0);
+    }
+
+    public String toBrief() {
+        return String.format("{%s'%s'[%s](%s)|%d}",
                              type,
                              Strings.sNull(text(), ""),
                              Strings.sNull(href(), ""),
-                             Strings.sNull(src(), ""));
+                             Strings.sNull(src(), ""),
+                             children.size());
+    }
+
+    public String toString(int indent) {
+        StringBuilder sb = new StringBuilder();
+        String inds = Strings.dup("    ", indent);
+        sb.append(inds);
+        sb.append(toBrief());
+        indent++;
+        for (ZDocEle child : children) {
+            sb.append('\n').append(child.toString(indent));
+        }
+        return sb.toString();
     }
 
     public ZDocEle() {
@@ -47,7 +64,7 @@ public class ZDocEle {
         this.type = ZDocEleType.NEW;
         this.attrs = Lang.context();
         this.name = "";
-        this.children = new LinkedList<ZDocEle>();
+        this.children = new ArrayList<ZDocEle>(5);
     }
 
     public ZDocEleType type() {
@@ -64,8 +81,14 @@ public class ZDocEle {
             ZDocEle child = children.remove(0);
             child.normalize();
             margeAttrs(child);
-            this.type = child.type;
+            if (ZDocEleType.NEW != child.type)
+                this.type = child.type;
             this.text = Strings.sBlank(child.text(), this.text);
+            this.children().addAll(child.children);
+        } else if (!children.isEmpty()) {
+            for (ZDocEle child : children) {
+                child.normalize();
+            }
         }
         return this;
     }

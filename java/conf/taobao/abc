@@ -1,0 +1,72 @@
+目标是如何计算这个值
+sign=e2eddd517a932b7e736a4e80550883bb
+---------------------------------------------------------------------
+请求网页: http://h5.m.taobao.com/awp/core/detail.htm?id=22338407332
+---------------------------------------------------------------------
+网页里带的JS请求:
+https://s.tbcdn.cn/s/aplus_wap.js
+http://a.tbcdn.cn/mw/app/msp/h5v2/msp-lib.min.js?v=199927471_124168
+http://a.tbcdn.cn/mw/app/msp/h5v2/msp-v2.min.js?v=521722649_40109
+---------------------------------------------------------------------
+其中最关键的是后面两个 xxxx.min.js
+里面生成 sign 的代码是:
+return this._addJsonParam(a) + "&sign=" + b.sign(JSON.stringify(this.options.data), this.t)
+---------------------------------------------------------------------
+其中:
+this.t 是时间绝对毫秒数，类似 1382762072527 这样的整数
+this.options.data 是一个 JS 对象
+Object {shopId: "70341014", currentPage: 1, pageSize: "30", catId: "", catTxt: "%E6%89%80%E6%9C%89%E5%AE%9D%E8%B4%9D"…}
+---------------------------------------------------------------------
+JSON.stringify(this.options.data) 出来的结果就是把这个东东变 JSON 字符串
+   "{"shopId":"70341014","currentPage":1,"pageSize":"30","catId":"","catTxt":"%E6%89%80%E6%9C%89%E5%AE%9D%E8%B4%9D","sort":"oldstarts"}"
+这个顺序是必须固定
+---------------------------------------------------------------------
+在 msp-lib.min.js （ jsbeautifier.org 格式化过后 ）的3428行附近可以看到主要生成的逻辑:
+g = {
+    tokenKey: "_m_h5_tk",
+    that: this,
+    appKey: function () {
+        var a = document.getElementById(f);
+        return a ? a.value : b.defaultAppKey
+    }(),
+    _getToken: function () {
+        return (c.getCookie(this.tokenKey) || "").split("_")[0]
+    },
+    _hostReg: /(m|waptest|wapa)\.(taobao|etao|tmall)\.(com)/,
+    genApiUrl: function (a, b, c) {
+        var d = "rest/" + b,
+            f = this._hostReg.exec(location.hostname),
+            g = {
+                path: d,
+                data: a
+            };
+        f ? (f[0] = "etao" === f[2] ? "apie" : "api", g.host = f.join(".")) : g.subdomain = "api";
+        var h = e(g);
+        return h + "&appKey=" + this.appKey + "&t=" + c
+    },
+    sign: function (a, b) {
+    	// 其中 a 就是前面提到的 JSON.stringify(this.options.data) 的结果（字符串）
+    	// b 就是前面提到的时间绝对毫秒数，类似 1382762072527 这样的整数
+        var c = this._getToken() + "&" + b + "&" + this.appKey + "&" + a;
+        // 你需要看看 _getToken() 哪行逻辑，就是从 cookie 里去，取不到，就用空串代替
+        return d(c)   // <- 这个就是对 c 做个 MD5 签名
+    }
+};
+---------------------------------------------------------------------
+在 sign 函数里，得出 
+
+c="9181c9dddcd8a8414ca81a077eacb204&1382759596604&12574478&{"shopId":"70341014","currentPage":1,"pageSize":"30","catId":"","catTxt":"%E6%89%80%E6%9C%89%E5%AE%9D%E8%B4%9D","sort":"oldstarts"}"
+
+ d(c) 就是一个标准的 MD5 计算，结果是
+
+  e2eddd517a932b7e736a4e80550883bb
+
+我用 Java 验算过这个 c，执行标准的 MD5 提出的指纹与这个值是相同的
+
+
+
+
+
+
+
+

@@ -7,7 +7,6 @@ import java.util.ListIterator;
 import org.nutz.lang.Lang;
 import org.nutz.lang.Nums;
 import org.nutz.lang.Strings;
-import org.nutz.zdoc.Am;
 import org.nutz.zdoc.Parser;
 import org.nutz.zdoc.Parsing;
 import org.nutz.zdoc.ZDocBlock;
@@ -15,10 +14,6 @@ import org.nutz.zdoc.ZDocLine;
 import org.nutz.zdoc.ZDocLineType;
 import org.nutz.zdoc.ZDocNode;
 import org.nutz.zdoc.ZDocNodeType;
-import org.nutz.zdoc.am.QuoteAm;
-import org.nutz.zdoc.am.ZDocImageAm;
-import org.nutz.zdoc.am.ZDocLinkAm;
-import org.nutz.zdoc.util.Ams;
 import org.nutz.zdoc.util.ZD;
 
 public class ZDocParser implements Parser {
@@ -27,16 +22,8 @@ public class ZDocParser implements Parser {
 
     private ZDocScanner scanner;
 
-    private Am[] ams_zdoc;
-
-    private Am[] ams_html;
-
     public ZDocParser() {
         scanner = new ZDocScanner();
-        ams_html = null;
-        ams_zdoc = Lang.array(new QuoteAm('`'),
-                              new ZDocImageAm(),
-                              new ZDocLinkAm());
     }
 
     @Override
@@ -147,7 +134,7 @@ public class ZDocParser implements Parser {
 
             // 解析
             ZDocBlock bb = new ZDocBlock(blines);
-            Ams.fillEles(ams_zdoc, ing, bb);
+            // TODO 执行解析 ... Ams.fillEles(ams_zdoc, ing, bb);
             blines.clear();
 
         }
@@ -239,7 +226,7 @@ public class ZDocParser implements Parser {
             for (String s : ss) {
                 ZDocBlock block = new ZDocBlock().setText(Strings.trim(s));
                 ing.current = new ZDocNode().type(cellType);
-                Ams.fillEles(ams_zdoc, ing, block);
+                // TODO 执行解析 ... Ams.fillEles(ams_zdoc, ing, block);
                 ing.current.parent(row);
             }
             // 将当前行加入表格
@@ -251,7 +238,7 @@ public class ZDocParser implements Parser {
 
     private void asParagraph(Parsing ing, ZDocBlock b) {
         ing.current.type(ZDocNodeType.PARAGRAPH);
-        Ams.fillEles(ams_zdoc, ing, b);
+        // TODO 执行解析 ... Ams.fillEles(ams_zdoc, ing, b);
     }
 
     private void asList(Parsing ing, ListIterator<ZDocBlock> it, ZDocBlock b) {
@@ -297,7 +284,7 @@ public class ZDocParser implements Parser {
                 break;
         }
         b.lines = b.sublines(1, -1);
-        Ams.fillEles(ams_html, ing, b);
+        // TODO 执行解析 ... Ams.fillEles(ams_html, ing, b);
     }
 
     private void makeNode(Parsing ing, ZDocBlock b) {
