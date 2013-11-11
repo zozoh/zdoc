@@ -28,6 +28,7 @@ var ioc = {
 	// 反引号
 	zdocQuote : {
 		type   : 'org.nutz.zdoc.am.ZDocQuoteAm',
+		args   : ['`'],
 		fields : {
 			name : {refer: '$Name'}
 		} 

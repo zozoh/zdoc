@@ -7,9 +7,15 @@ import org.nutz.zdoc.ZDocEleType;
 
 public class ZDocQuoteAm extends ZDocAm {
 
+    private char theChar;
+
+    public ZDocQuoteAm(char theChar) {
+        this.theChar = theChar;
+    }
+
     @Override
     public AmStatus enter(AmStack<ZDocEle> as, char c) {
-        if ('`' == c) {
+        if (theChar == c) {
             as.pushAm(this).pushObj(as.bornObj());
             return AmStatus.CONTINUE;
         }
@@ -18,7 +24,7 @@ public class ZDocQuoteAm extends ZDocAm {
 
     @Override
     public AmStatus eat(AmStack<ZDocEle> as, char c) {
-        if ('`' == c)
+        if (theChar == c)
             return AmStatus.DONE;
         as.buffer.push(c);
         return AmStatus.CONTINUE;

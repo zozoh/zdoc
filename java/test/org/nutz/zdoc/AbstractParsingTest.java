@@ -8,11 +8,16 @@ import static org.nutz.zdoc.ZDocEleType.IMG;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.nutz.am.AmFactory;
 import org.nutz.json.Json;
 import org.nutz.lang.Lang;
 import org.nutz.lang.Streams;
 
 public class AbstractParsingTest {
+
+    protected AmFactory NewAmFactory(String name) {
+        return new AmFactory("org/nutz/zdoc/am/" + name + ".js");
+    }
 
     protected Parsing ING(String str) {
         return new Parsing(Lang.inr(str));

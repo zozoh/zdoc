@@ -1,6 +1,6 @@
 package org.nutz.am;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.nutz.lang.Lang;
@@ -170,7 +170,7 @@ public abstract class AmStack<T> {
 
     public void addCandidate(AmStack<T> stack) {
         if (null == candidates)
-            candidates = new ArrayList<AmStack<T>>(3);
+            candidates = new LinkedList<AmStack<T>>();
         candidates.add(stack);
     }
 

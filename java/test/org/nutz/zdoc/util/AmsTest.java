@@ -23,7 +23,7 @@ public class AmsTest extends AbstractParsingTest {
 
     @Before
     public void before() {
-        fa = new AmFactory("org/nutz/zdoc/am/zdoc.js");
+        fa = NewAmFactory("zdoc");
     }
 
     @Test

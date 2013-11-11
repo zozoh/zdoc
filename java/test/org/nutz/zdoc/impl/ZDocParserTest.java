@@ -184,6 +184,7 @@ public class ZDocParserTest extends AbstractParsingTest {
 
     private ZDocNode PSf(String ph) {
         Parsing ing = INGf(ph);
+        ing.fa = NewAmFactory("zdoc");
         parser.scan(ing);
         parser.build(ing);
         return ing.root;
@@ -191,6 +192,7 @@ public class ZDocParserTest extends AbstractParsingTest {
 
     private ZDocNode PS(String str) {
         Parsing ing = ING(str);
+        ing.fa = NewAmFactory("zdoc");
         parser.scan(ing);
         parser.build(ing);
         return ing.root;
