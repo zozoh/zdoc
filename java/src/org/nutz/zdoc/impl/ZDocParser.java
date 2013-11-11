@@ -149,7 +149,8 @@ public class ZDocParser implements Parser {
         if (b.firstLine == b.lastLine
             && b.firstLine.trimLower().startsWith("@import ")) {
             ing.current.type(ZDocNodeType.LINK);
-            ing.current.text(b.firstLine.text.substring("@import ".length()));
+            String link = Strings.trim(b.firstLine.text.substring("@import ".length()));
+            ing.current.text(link);
         }
         // 普通的注释
         else {

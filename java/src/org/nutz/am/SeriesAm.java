@@ -52,8 +52,9 @@ public abstract class SeriesAm<T> extends ComposAm<T> {
                 am.done(as);
                 si++;
                 as.setSi(si * (-1));
-                if (si > ams.length)
+                if (si > ams.length) {
                     return st;
+                }
                 return AmStatus.CONTINUE;
             case DONE_BACK:
                 throw Lang.impossible();

@@ -11,6 +11,10 @@ public enum ZDocEleType {
      */
     INLINE,
     /**
+     * 用反引号扩起来的元素
+     */
+    QUOTE,
+    /**
      * 图片
      */
     IMG,

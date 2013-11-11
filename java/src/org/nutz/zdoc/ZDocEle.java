@@ -3,7 +3,7 @@ package org.nutz.zdoc;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.nutz.css.ZCssStyle;
+import org.nutz.css.CssRule;
 import org.nutz.json.Json;
 import org.nutz.lang.Lang;
 import org.nutz.lang.Strings;
@@ -182,18 +182,22 @@ public class ZDocEle {
         return this;
     }
 
-    public ZCssStyle style() {
-        if (null == _style) {
-            _style = new ZCssStyle(attrString("style"));
+    public CssRule style() {
+        CssRule style = this.attrAs(CssRule.class, "style");
+        if (null == style) {
+            style = new CssRule();
+            attr("style", style);
         }
-        return _style;
+        return style;
     }
 
-    private ZCssStyle _style;
+    public ZDocEle style(String name, String value) {
+        style().set(name, value);
+        return this;
+    }
 
-    public ZDocEle style(String style) {
-        _style = null;
-        return attr("style", style);
+    public String style(String name) {
+        return style().get(name);
     }
 
     public ZDocEle parent() {

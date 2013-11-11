@@ -10,7 +10,7 @@ public abstract class ParallelAm<T> extends ComposAm<T> {
     @Override
     public AmStatus enter(AmStack<T> as, char c) {
         if (c == theChar) {
-            as.pushAm(this).pushQc(theChar);
+            // as.pushAm(this).pushQc(theChar);
             return AmStatus.DONE;
         }
 

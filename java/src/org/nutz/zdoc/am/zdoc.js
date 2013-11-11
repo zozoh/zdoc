@@ -10,13 +10,31 @@ var ioc = {
 				refer:'zdocLink'
 			},{
 				refer:'zdocText'
+			},{
+				refer:'zdocQuote'
+			},{
+				refer:'zdocEm'
 			}]
 		}
 	},
-	// 文字
+	// 普通文字
 	zdocText : {
 		type   : 'org.nutz.zdoc.am.TextAm',
-		args   : ['<[{'],
+		args   : ['<[{`'],
+		fields : {
+			name : {refer: '$Name'}
+		} 
+	},
+	// 反引号
+	zdocQuote : {
+		type   : 'org.nutz.zdoc.am.ZDocQuoteAm',
+		fields : {
+			name : {refer: '$Name'}
+		} 
+	},
+	// 重点文字
+	zdocEm : {
+		type   : 'org.nutz.zdoc.am.ZDocEmphasisAm',
 		fields : {
 			name : {refer: '$Name'}
 		} 
