@@ -54,7 +54,7 @@ public class ZDocParserTest extends AbstractParsingTest {
         assertEquals(3, nd.eles().size());
 
         _CE(nd, 0, INLINE, "{}", "A");
-        _CE(nd, 1, INLINE, "{href:'a.zdoc'}", "X");
+        _CE(nd, 1, INLINE, "{href:'a.zdoc'}", null);
         _CE(nd, 1, INLINE, "{}", "X", 0);
         _CE(nd, 1, IMG, "{src:'a.png'}", null, 1);
         _CE(nd, 2, INLINE, "{}", "B");
@@ -67,7 +67,7 @@ public class ZDocParserTest extends AbstractParsingTest {
         assertEquals(3, nd.eles().size());
 
         _CE(nd, 0, INLINE, "{}", "A");
-        _CE(nd, 1, INLINE, "{href:'a.zdoc'}", "X");
+        _CE(nd, 1, INLINE, "{href:'a.zdoc'}", null);
         _CE(nd, 1, IMG, "{src:'a.png'}", null, 0);
         _CE(nd, 1, INLINE, "{}", "X", 1);
         _CE(nd, 2, INLINE, "{}", "B");

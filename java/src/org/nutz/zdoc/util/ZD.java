@@ -10,6 +10,8 @@ import org.nutz.zdoc.ZDocBlock;
 
 public class ZD {
 
+    public static final String ATT_BLOCK_INDENT = "$block-indent";
+
     /**
      * 将字符串拆分成一组字符串，给定的包裹字符之内的字符将被逃逸
      * 

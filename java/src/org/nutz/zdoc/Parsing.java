@@ -39,13 +39,31 @@ public class Parsing {
     }
 
     /**
+     * 根据一段字符串填充当前的节点
+     * 
+     * @param str
+     *            字符串
+     */
+    public void fillCurrentEles(String str) {
+        ZDocEle ele = parseString(str);
+        // 这种情况需要仅仅加入所有的子 ...
+        if (ele.isWrapper()) {
+            current.addEles(ele.children());
+        }
+        // 加入自己就成
+        else {
+            current.addEle(ele);
+        }
+    }
+
+    /**
      * 从一个字符串中解析出一个 ZDocEle 对象
      * 
      * @param str
      *            字符串对象
      * @return 节点内容元素对象
      */
-    public ZDocEle parseBlock(String str) {
+    public ZDocEle parseString(String str) {
         char[] cs = str.toCharArray();
         Am<ZDocEle> am = fa.getAm(ZDocParallelAm.class, "zdocParagraph");
         // 准备堆栈

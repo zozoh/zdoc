@@ -160,6 +160,30 @@ public class AmsTest extends AbstractParsingTest {
     public void test_simple_block() {
         ZDocEle root;
         // ...................................................
+        root = _parse("A[x Z<y>]B");
+        root.normalize();
+
+        assertEquals(3, root.children().size());
+        _Cele(root, 0, INLINE, "A", null);
+        _Cele(root, 1, INLINE, null, "x");
+
+        ZDocEle e = root.ele(1);
+        _Cele(e, 0, INLINE, "Z", null);
+        _Cele(e, 1, IMG, null, "y");
+
+        _Cele(root, 2, INLINE, "B", null);
+        // ...................................................
+        root = _parse("A[x <y>]B");
+        root.normalize();
+
+        assertEquals(3, root.children().size());
+        _Cele(root, 0, INLINE, "A", null);
+
+        _Cele(root, 1, IMG, null, "y");
+        assertEquals("x", root.ele(1).href());
+
+        _Cele(root, 2, INLINE, "B", null);
+        // ...................................................
         root = _parse("A{*#FF0;B}{^/b}C");
         root.normalize();
 

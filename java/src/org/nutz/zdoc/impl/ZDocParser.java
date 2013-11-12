@@ -18,8 +18,6 @@ import org.nutz.zdoc.util.ZD;
 
 public class ZDocParser implements Parser {
 
-    private static final String ATT_BLOCK_INDENT = "blockIndent";
-
     private ZDocScanner scanner;
 
     public ZDocParser() {
@@ -85,7 +83,7 @@ public class ZDocParser implements Parser {
 
     private void asBlockquote(Parsing ing, ZDocBlock b) {
         ing.current.type(ZDocNodeType.BLOCKQUOTE);
-        ing.current.attrs().set(ATT_BLOCK_INDENT, 0);
+        ing.current.attrs().set(ZD.ATT_BLOCK_INDENT, 0);
 
         int bIndent = 0;
 
@@ -118,11 +116,11 @@ public class ZDocParser implements Parser {
                                       List<ZDocLine> blines) {
         if (!blines.isEmpty()) {
             ZDocNode nd = new ZDocNode().type(ZDocNodeType.BLOCKQUOTE);
-            nd.attrs().set(ATT_BLOCK_INDENT, bIndent);
+            nd.attrs().set(ZD.ATT_BLOCK_INDENT, bIndent);
 
             // 寻找父节点
             while (ing.current.parent().isBlockquote()
-                   && ing.current.attrs().getInt(ATT_BLOCK_INDENT) >= bIndent) {
+                   && ing.current.attrs().getInt(ZD.ATT_BLOCK_INDENT) >= bIndent) {
                 ing.current = ing.current.parent();
             }
 
@@ -134,7 +132,8 @@ public class ZDocParser implements Parser {
 
             // 解析
             ZDocBlock bb = new ZDocBlock(blines);
-            // TODO 执行解析 ... Ams.fillEles(ams_zdoc, ing, bb);
+            ing.fillCurrentEles(bb.joinLines());
+
             blines.clear();
 
         }
@@ -207,27 +206,14 @@ public class ZDocParser implements Parser {
                 throw Lang.impossible();
             }
             // 将一行拆分成一组 ZDocBlock
-            List<String> ss = ZD.splitToListEscapeQuote(line.text,
-                                                        "|",
-                                                        Nums.arrayC('`',
-                                                                    '"',
-                                                                    '\'',
-                                                                    '{',
-                                                                    '<',
-                                                                    '[',
-                                                                    '('),
-                                                        Nums.arrayC('`',
-                                                                    '"',
-                                                                    '\'',
-                                                                    '}',
-                                                                    '>',
-                                                                    ']',
-                                                                    ')'));
+            char[] b0 = Nums.arrayC('`', '"', '\'', '{', '<', '[', '(');
+            char[] b1 = Nums.arrayC('`', '"', '\'', '}', '>', ']', ')');
+            List<String> ss = ZD.splitToListEscapeQuote(line.text, "|", b0, b1);
             // 依次加入当前行
             for (String s : ss) {
                 ZDocBlock block = new ZDocBlock().setText(Strings.trim(s));
                 ing.current = new ZDocNode().type(cellType);
-                // TODO 执行解析 ... Ams.fillEles(ams_zdoc, ing, block);
+                ing.fillCurrentEles(block.joinLines());
                 ing.current.parent(row);
             }
             // 将当前行加入表格
@@ -239,7 +225,7 @@ public class ZDocParser implements Parser {
 
     private void asParagraph(Parsing ing, ZDocBlock b) {
         ing.current.type(ZDocNodeType.PARAGRAPH);
-        // TODO 执行解析 ... Ams.fillEles(ams_zdoc, ing, b);
+        ing.fillCurrentEles(b.joinLines());
     }
 
     private void asList(Parsing ing, ListIterator<ZDocBlock> it, ZDocBlock b) {

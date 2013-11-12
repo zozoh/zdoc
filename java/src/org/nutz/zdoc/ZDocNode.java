@@ -1,6 +1,7 @@
 package org.nutz.zdoc;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -97,6 +98,11 @@ public class ZDocNode {
     public ZDocNode addEle(ZDocEle ele) {
         if (null != ele)
             this.eles.add(ele.normalize());
+        return this;
+    }
+
+    public ZDocNode addEles(Collection<? extends ZDocEle> eles) {
+        this.eles.addAll(eles);
         return this;
     }
 

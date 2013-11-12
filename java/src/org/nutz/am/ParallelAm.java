@@ -9,23 +9,27 @@ public abstract class ParallelAm<T> extends ComposAm<T> {
 
     @Override
     public AmStatus enter(AmStack<T> as, char c) {
+        // 如果用退出字符进入，直接返回完成
         if (c == theChar) {
             // as.pushAm(this).pushQc(theChar);
             return AmStatus.DONE;
         }
 
+        // 尝试选择几个候选堆栈
         selectCandidates(as, c);
 
+        // 选择完了候选堆栈，如果有，那么就表示可以继续消费字符
         if (as.hasCandidates()) {
-            // 那么就会将自身压入母堆栈
+            // 那么就会将自身压入母堆栈，同时也要在母堆栈标识退出字符
             // []
             // [] ...
             // [+]... # 仅仅在当前堆栈压入自身
-            // ...
-            as.pushAm(this);
+            // ']'... # 压入自己的退出字符
+            as.pushQc(theChar).pushAm(this);
 
             return AmStatus.CONTINUE;
         }
+        // 否则就表示本自动机遇到意外字符，必须 drop
         return AmStatus.DROP;
     }
 

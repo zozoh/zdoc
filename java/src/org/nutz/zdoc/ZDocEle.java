@@ -1,36 +1,26 @@
 package org.nutz.zdoc;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.nutz.css.CssRule;
 import org.nutz.json.Json;
-import org.nutz.lang.Lang;
 import org.nutz.lang.Strings;
-import org.nutz.lang.util.Context;
 
 public class ZDocEle {
 
     private ZDocEleType type;
 
-    /**
-     * 用什么来包裹，可以是 'B','I','U','`','~','^',',' <br>
-     * 用来表示特殊的 HTML 包裹标签
-     */
-    private char quote;
-
     private String text;
 
-    private Context attrs;
-
-    private String name;
-
-    private ZDocEle parent;
+    private ZDocAttrs attrs;
 
     /**
-     * 本元素是否来自 HTML
+     * 给 HTML 解析器专用的属性
      */
-    private boolean html;
+    private String tagName;
+
+    private ZDocEle parent;
 
     private List<ZDocEle> children;
 
@@ -60,11 +50,11 @@ public class ZDocEle {
     }
 
     public ZDocEle() {
-        this.quote = 0;
         this.type = ZDocEleType.NEW;
-        this.attrs = Lang.context();
-        this.name = "";
-        this.children = new ArrayList<ZDocEle>(5);
+        this.attrs = new ZDocAttrs();
+        this.tagName = "";
+        // this.children = new ArrayList<ZDocEle>(5);
+        this.children = new LinkedList<ZDocEle>();
     }
 
     public ZDocEleType type() {
@@ -76,6 +66,19 @@ public class ZDocEle {
         return this;
     }
 
+    /**
+     * @return 本元素是否仅仅是一组元素的包裹。<br>
+     *         实际上，如果自己没有任何属性，并且文字为空，那么就是了
+     */
+    public boolean isWrapper() {
+        return null == text && (null == attrs || attrs.isEmpty());
+    }
+
+    /**
+     * 尽力减低本身树的层级
+     * 
+     * @return 自身
+     */
     public ZDocEle normalize() {
         if (children.size() == 1) {
             ZDocEle child = children.remove(0);
@@ -95,24 +98,6 @@ public class ZDocEle {
 
     public ZDocEle margeAttrs(ZDocEle ele) {
         this.attrs.putAll(ele.attrs);
-        return this;
-    }
-
-    public char quote() {
-        return quote;
-    }
-
-    public ZDocEle quote(char quote) {
-        this.quote = quote;
-        return this;
-    }
-
-    public boolean html() {
-        return html;
-    }
-
-    public ZDocEle html(boolean html) {
-        this.html = html;
         return this;
     }
 
@@ -220,12 +205,12 @@ public class ZDocEle {
         return this.children;
     }
 
-    public String name() {
-        return name;
+    public String tagName() {
+        return tagName;
     }
 
-    public ZDocEle name(String name) {
-        this.name = name.toUpperCase();
+    public ZDocEle tagName(String tagName) {
+        this.tagName = tagName.toUpperCase();
         return this;
     }
 

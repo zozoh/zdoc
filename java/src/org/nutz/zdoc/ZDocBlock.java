@@ -63,9 +63,14 @@ public class ZDocBlock {
             return "";
         Iterator<ZDocLine> it = lines.iterator();
         StringBuilder sb = new StringBuilder();
-        sb.append(it.next().text);
-        while (it.hasNext())
-            sb.append('\n').append(it.next().text);
+        ZDocLine line = it.next();
+        sb.append(line.text);
+        while (it.hasNext()) {
+            line = it.next();
+            if (line.type == ZDocLineType.BLANK)
+                break;
+            sb.append('\n').append(line.text);
+        }
         return sb.toString();
     }
 

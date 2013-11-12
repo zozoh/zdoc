@@ -128,19 +128,23 @@ public abstract class AmStack<T> {
         // QC
         sb.append(inds).append("Q:");
         for (int i = i_qc; i >= 0; i--) {
-            sb.append('\'');
             char c = qcs[i];
-            sb.append(c == 0 ? '~' : c);
-            sb.append('\'');
+            if (c == 0) {
+                sb.append(" 0 ");
+            } else {
+                sb.append('\'').append(c).append('\'');
+            }
         }
         sb.append(" < ").append('\n');
 
         // SI
         sb.append(inds).append("I:");
         for (int i = i_si; i >= 0; i--) {
-            sb.append('\'');
-            sb.append(sis[i]);
-            sb.append('\'');
+            if (sis[i] >= 0) {
+                sb.append("  ").append(sis[i]);
+            } else {
+                sb.append(" ").append(sis[i]);
+            }
         }
         sb.append(" < ").append('\n');
 
