@@ -6,6 +6,7 @@ import java.util.ListIterator;
 
 import org.nutz.lang.Lang;
 import org.nutz.lang.Nums;
+import org.nutz.lang.Streams;
 import org.nutz.lang.Strings;
 import org.nutz.zdoc.Parser;
 import org.nutz.zdoc.Parsing;
@@ -301,6 +302,6 @@ public class ZDocParser implements Parser {
     @Override
     public void scan(Parsing ing) {
         scanner.scan(ing);
-
+        Streams.safeClose(ing.reader);
     }
 }

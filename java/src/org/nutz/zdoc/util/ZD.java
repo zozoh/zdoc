@@ -101,5 +101,6 @@ public class ZD {
         return b;
     }
 
+    // 禁止实例化
     private ZD() {}
 }

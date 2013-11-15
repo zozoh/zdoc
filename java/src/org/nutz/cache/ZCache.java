@@ -15,8 +15,18 @@ public class ZCache<T> {
         return map.get(key);
     }
 
-    public boolean match(String key) {
+    public ZCache<T> set(String key, T val) {
+        map.put(key, val);
+        return this;
+    }
+
+    public boolean has(String key) {
         return map.containsKey(key);
+    }
+
+    public ZCache<T> clear() {
+        map.clear();
+        return this;
     }
 
     public T remove(String key) {
