@@ -2,7 +2,7 @@ package org.nutz.zdoc;
 
 import java.io.BufferedReader;
 import java.io.Reader;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.nutz.am.Am;
@@ -30,12 +30,15 @@ public class Parsing {
 
     public ZDocAmStack stack;
 
+    public StringBuilder raw;
+
     public Parsing(Reader reader) {
         this.reader = Streams.buffr(reader);
         this.root = new ZDocNode();
         this.current = root;
-        this.blocks = new LinkedList<ZDocBlock>();
+        this.blocks = new ArrayList<ZDocBlock>();
         this.stack = new ZDocAmStack(10);
+        this.raw = new StringBuilder();
     }
 
     /**
@@ -78,7 +81,7 @@ public class Parsing {
             char c = cs[i];
             AmStatus st = stack.eat(c);
             if (AmStatus.CONTINUE != st)
-                throw Lang.impossible();
+                throw Lang.makeThrow("Fail to parse :\n%s", str);
         }
         // 关闭堆栈得到对象
         return stack.close().normalize();

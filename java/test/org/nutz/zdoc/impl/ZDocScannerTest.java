@@ -34,6 +34,19 @@ public class ZDocScannerTest extends AbstractParsingTest {
     }
 
     @Test
+    public void test_multi_block() {
+        String s = "A\n";
+        s += "\n";
+        s += "B\n";
+
+        Parsing ing = scan(s);
+
+        assertEquals(2, ing.blocks.size());
+        assertEquals("A", ing.blocks.get(0).firstLine.text);
+        assertEquals("B", ing.blocks.get(1).firstLine.text);
+    }
+
+    @Test
     public void test_table() {
         String s = "H0 | H1";
         s += "\n --- | ---";

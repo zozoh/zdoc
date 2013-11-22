@@ -60,7 +60,7 @@ public class ZD {
             // 继续下一个字符
         }
         // 最后看看是否需要加入最后一项
-        if (i > off) {
+        if (i > off && i < cs.length) {
             list.add(new String(cs, off, i - off));
         }
 

@@ -58,9 +58,10 @@ public class ZDocEmphasisAm extends ZDocAm {
             else if ('#' == c) {
                 StringBuilder sb = new StringBuilder();
                 sb.append(c);
-                for (pos++; pos < str.length(); pos++) {
+                int maxPos = Math.min(pos + 10, str.length());
+                for (pos++; pos < maxPos; pos++) {
                     c = str.charAt(pos);
-                    if (c == ';')
+                    if (c == ';' || c == ' ')
                         break;
                     sb.append(c);
                 }
@@ -83,10 +84,15 @@ public class ZDocEmphasisAm extends ZDocAm {
             }
         }
 
-        String text = Strings.trim(str.substring(pos));
-        o.text(text);
-        as.mergeHead(o);
-        as.buffer.clear();
-        as.popAm();
+        try {
+            String text = pos > 0 ? Strings.trim(str.substring(pos)) : str;
+            o.text(text);
+            as.mergeHead(o);
+            as.buffer.clear();
+            as.popAm();
+        }
+        catch (RuntimeException e) {
+            throw e;
+        }
     }
 }

@@ -8,6 +8,8 @@ import org.nutz.lang.Lang;
 import org.nutz.lang.Nums;
 import org.nutz.lang.Streams;
 import org.nutz.lang.Strings;
+import org.nutz.log.Log;
+import org.nutz.log.Logs;
 import org.nutz.zdoc.Parser;
 import org.nutz.zdoc.Parsing;
 import org.nutz.zdoc.ZDocBlock;
@@ -19,6 +21,8 @@ import org.nutz.zdoc.util.ZD;
 
 public class ZDocParser implements Parser {
 
+    private static final Log log = Logs.get();
+
     private ZDocScanner scanner;
 
     public ZDocParser() {
@@ -27,55 +31,65 @@ public class ZDocParser implements Parser {
 
     @Override
     public void build(Parsing ing) {
+        scanner.scan(ing);
+        Streams.safeClose(ing.reader);
+
         // 依次循环块，为每个块制作一个节点
         ListIterator<ZDocBlock> it = ing.blocks.listIterator();
         while (it.hasNext()) {
             // 得到块
             ZDocBlock b = it.next();
 
-            // 空块无视
-            if (b.isEmpty())
-                continue;
+            try {
+                // 空块无视
+                if (b.isEmpty())
+                    continue;
 
-            // 建立对应节点
-            makeNode(ing, b);
+                // 建立对应节点
+                makeNode(ing, b);
 
-            // 根据块的不同类型，进行解析
-            // <HTML> 的行要一直寻找到 </HTML> 行
-            if (b.firstLine.trimLower().equals("<html>")) {
-                asHTML(ing, it, b);
+                // 根据块的不同类型，进行解析
+                // <HTML> 的行要一直寻找到 </HTML> 行
+                if (b.firstLine.trimLower().equals("<html>")) {
+                    asHTML(ing, it, b);
+                }
+                // {{{ 开始的行，要一直寻找到 }}} 结束的行
+                else if (b.firstLine.trimmed().equals("{{{")) {
+                    asCode(ing, it, b);
+                }
+                // UL | OL
+                else if (ZDocLineType.UL == b.type || ZDocLineType.OL == b.type) {
+                    asList(ing, it, b);
+                }
+                // TABLE
+                else if (ZDocLineType.TABLE == b.type) {
+                    asTable(ing, b);
+                }
+                // COMMENT
+                else if (ZDocLineType.COMMENT == b.type) {
+                    asComment(ing, b);
+                }
+                // HR
+                else if (ZDocLineType.HR == b.type) {
+                    asHr(ing, b);
+                }
+                // BLOCKQUOTE
+                else if (ZDocLineType.BLOCKQUOTE == b.type) {
+                    asBlockquote(ing, b);
+                }
+                // 普通段落
+                else if (ZDocLineType.PARAGRAPH == b.type) {
+                    asParagraph(ing, b);
+                }
+                // 肯定有啥错
+                else {
+                    throw Lang.impossible();
+                }
             }
-            // {{{ 开始的行，要一直寻找到 }}} 结束的行
-            else if (b.firstLine.trimmed().equals("{{{")) {
-                asCode(ing, it, b);
-            }
-            // UL | OL
-            else if (ZDocLineType.UL == b.type || ZDocLineType.OL == b.type) {
-                asList(ing, it, b);
-            }
-            // TABLE
-            else if (ZDocLineType.TABLE == b.type) {
-                asTable(ing, b);
-            }
-            // COMMENT
-            else if (ZDocLineType.COMMENT == b.type) {
-                asComment(ing, b);
-            }
-            // HR
-            else if (ZDocLineType.HR == b.type) {
-                asHr(ing, b);
-            }
-            // BLOCKQUOTE
-            else if (ZDocLineType.BLOCKQUOTE == b.type) {
-                asBlockquote(ing, b);
-            }
-            // 普通段落
-            else if (ZDocLineType.PARAGRAPH == b.type) {
-                asParagraph(ing, b);
-            }
-            // 肯定有啥错
-            else {
-                throw Lang.impossible();
+            catch (Exception e) {
+                log.warn(String.format("Fail to parse block : \n%s \n",
+                                       b.toString()),
+                         e);
             }
         }
 
@@ -252,11 +266,14 @@ public class ZDocParser implements Parser {
 
     private void asCode(Parsing ing, ListIterator<ZDocBlock> it, ZDocBlock b) {
         ing.current.type(ZDocNodeType.CODE);
-        while (it.hasNext()) {
-            ZDocBlock b2 = it.next();
-            b.mergeWith(b2);
-            if (b2.lastLine.trimmed().equals("}}}"))
-                break;
+        // 本段没有结尾，继续寻找后面的块
+        if (!b.lastLine.trimmed().equals("}}}")) {
+            while (it.hasNext()) {
+                ZDocBlock b2 = it.next();
+                b.mergeWith(b2);
+                if (b2.lastLine.trimmed().equals("}}}"))
+                    break;
+            }
         }
         b.lines = b.sublines(1, -1);
         ing.current.text(b.joinLines());
@@ -299,9 +316,4 @@ public class ZDocParser implements Parser {
         ing.current = nd;
     }
 
-    @Override
-    public void scan(Parsing ing) {
-        scanner.scan(ing);
-        Streams.safeClose(ing.reader);
-    }
 }

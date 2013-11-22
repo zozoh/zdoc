@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.nutz.zdoc.ZDocEleType.IMG;
 import static org.nutz.zdoc.ZDocEleType.INLINE;
+import static org.nutz.zdoc.ZDocNodeType.CODE;
 import static org.nutz.zdoc.ZDocNodeType.HEADER;
 import static org.nutz.zdoc.ZDocNodeType.NODE;
 import static org.nutz.zdoc.ZDocNodeType.PARAGRAPH;
@@ -31,6 +32,21 @@ public class ZDocParserTest extends AbstractParsingTest {
     @Before
     public void before() {
         parser = new ZDocParser();
+    }
+
+    @Test
+    public void test_code_01() {
+        String code = "abc";
+        code += "\n|--|";
+        code += "\nyyy";
+        String s = "{{{\n";
+        s += code;
+        s += "\n}}}";
+
+        ZDocNode root = PS(s);
+
+        _C(root, NODE, 1, "{}", "");
+        _C(root, CODE, 0, "{}", code, 0);
     }
 
     @Test
@@ -185,7 +201,6 @@ public class ZDocParserTest extends AbstractParsingTest {
     private ZDocNode PSf(String ph) {
         Parsing ing = INGf(ph);
         ing.fa = NewAmFactory("zdoc");
-        parser.scan(ing);
         parser.build(ing);
         return ing.root;
     }
@@ -193,7 +208,6 @@ public class ZDocParserTest extends AbstractParsingTest {
     private ZDocNode PS(String str) {
         Parsing ing = ING(str);
         ing.fa = NewAmFactory("zdoc");
-        parser.scan(ing);
         parser.build(ing);
         return ing.root;
     }

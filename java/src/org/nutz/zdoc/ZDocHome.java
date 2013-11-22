@@ -7,10 +7,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.nutz.am.AmFactory;
 import org.nutz.cache.ZCache;
 import org.nutz.lang.Lang;
 import org.nutz.lang.Streams;
 import org.nutz.lang.Strings;
+import org.nutz.lang.Xmls;
+import org.nutz.lang.util.Callback2;
 import org.nutz.lang.util.Context;
 import org.nutz.lang.util.MultiLineProperties;
 import org.nutz.log.Log;
@@ -20,6 +23,8 @@ import org.nutz.vfs.ZFWalker;
 import org.nutz.vfs.ZFile;
 import org.nutz.vfs.ZIO;
 import org.nutz.zdoc.impl.ZDocParser;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 public class ZDocHome {
 
@@ -33,17 +38,13 @@ public class ZDocHome {
 
     private ZCache<ZDocHtmlCacheItem> tmpl;
 
-    private ZCache<ZDocNode> docs;
-
-    private ZCache<String> htmls;
-
     private List<ZDir> rss;
 
     private Context vars;
 
     private List<ZDocRule> rules;
 
-    private ZDocIndex indexes;
+    private ZDocIndex index;
 
     // 顶层目录都有哪些文件和目录不要扫描的
     private Set<String> topIgnores;
@@ -52,21 +53,19 @@ public class ZDocHome {
         this.io = io;
         this.libs = new ZCache<ZDocHtmlCacheItem>();
         this.tmpl = new ZCache<ZDocHtmlCacheItem>();
-        this.docs = new ZCache<ZDocNode>();
         this.rss = new ArrayList<ZDir>();
         this.topIgnores = new HashSet<String>();
         this.vars = Lang.context();
         this.rules = new ArrayList<ZDocRule>();
-        this.indexes = new ZDocIndex();
+        this.index = new ZDocIndex();
     }
 
     public ZDocHome clear() {
         libs.clear();
         tmpl.clear();
-        docs.clear();
-        htmls.clear();
         vars.clear();
         rules.clear();
+        index.clear();
         topIgnores.clear();
         return this;
     }
@@ -76,9 +75,12 @@ public class ZDocHome {
     }
 
     public ZDocHome src(ZDir dir) {
-        log.infof("home @ %s", src.path());
-        src = dir;
-        return init(src.getFile("zdoc.conf"));
+        if (null != dir) {
+            src = dir;
+            log.infof("home @ %s", src.path());
+            init(src.getFile("zdoc.conf"));
+        }
+        return this;
     }
 
     public ZDocHome init(ZFile fconf) {
@@ -101,72 +103,66 @@ public class ZDocHome {
             _read_rules(pp);
             _read_rss(pp);
             _read_vars(pp);
+
+        }
+        // 没有配置文件，则试图给个默认值
+        else {
+            _set_cache_item(tmpl, "_tmpl");
+            _set_cache_item(libs, "_libs");
+            for (String nm : "imgs,js,css".split(",")) {
+                if (src.existsDir(nm)) {
+                    rss.add(src.getDir(nm));
+                    topIgnores.add(nm);
+                }
+            }
+        }
+
+        // 解析索引
+        ZFile indexml = src.getFile("index.xml");
+        // 根据原生目录结构
+        if (null == indexml) {
+            _read_index_by_native();
+        }
+        // 根据给定的 XML 文件
+        else {
+            _read_index_by_xml(indexml);
         }
         // 开始逐个分析文档
         log.info("walking docs ...");
 
         // 准备解析器
         final Parser paZDoc = new ZDocParser();
+        final AmFactory fa_zdoc = new AmFactory("org/nutz/zdoc/am/zdoc.js");
 
-        // 定义遍历器
-        ZFWalker walker = new ZFWalker() {
-            public boolean invoke(int i, ZFile zf) {
-                if (zf.isDir())
-                    return true;
+        // 开始遍历，解析每个文件
+        index.walk(new Callback2<ZDocIndex, ZFile>() {
+            public void invoke(ZDocIndex zi, ZFile zf) {
                 if (!zf.isFile())
-                    return false;
-
-                String tp = zf.type().toLowerCase();
+                    return;
                 String rph = src.relative(zf);
 
                 // ZDoc
-                if (tp.matches("^zdoc|man$")) {
-                    log.infof("zdoc:", rph);
+                if (zf.matchType("^zdoc|man$")) {
+                    log.infof("zdoc: %s", rph);
                     Parsing ing = new Parsing(io.readString(zf));
-                    paZDoc.scan(ing);
+                    ing.fa = fa_zdoc;
                     paZDoc.build(ing);
                     ing.root.normalize();
-                    docs.set(rph, ing.root);
+                    index.docRoot(ing.root).rawTex(ing.raw);
                 }
                 // Markdown
-                else if (tp.matches("^md|markdown$")) {
-                    log.infof("md:", rph);
+                else if (zf.matchType("^md|markdown$")) {
+                    log.infof("md: %s", rph);
                     throw Lang.noImplement();
                 }
                 // HTML
-                else if (tp.matches("^html?$")) {
-                    log.infof("html:", rph);
+                else if (zf.matchType("^html?$")) {
+                    log.infof("html: %s", rph);
                     String html = Streams.readAndClose(io.readString(zf));
-                    htmls.set(rph, html);
+                    index.rawTex(html);
                 }
-                // 其他文件
-                else {
-                    return false;
-                }
-                return true;
             }
-        };
-
-        // 开始遍历
-        List<ZFile> tops = src.ls(true);
-        for (ZFile top : tops) {
-            // 忽略
-            if (topIgnores.contains(top)) {
-                continue;
-            }
-            // 目录
-            else if (top.isDir()) {
-                ((ZDir) top).walk(true, walker);
-            }
-            // 文件
-            else if (top.isFile()) {
-                walker.invoke(0, top);
-            }
-            // 不肯
-            else {
-                throw Lang.impossible();
-            }
-        }
+        });
 
         // 返回自身
         return this;
@@ -180,14 +176,6 @@ public class ZDocHome {
         return tmpl;
     }
 
-    public ZCache<ZDocNode> docs() {
-        return docs;
-    }
-
-    public ZCache<String> htmls() {
-        return htmls;
-    }
-
     public Context vars() {
         return vars;
     }
@@ -196,8 +184,69 @@ public class ZDocHome {
         return rules;
     }
 
-    public ZDocIndex indexes() {
-        return indexes;
+    public ZDocIndex index() {
+        return index;
+    }
+
+    private void _read_index_by_native() {
+        for (ZFile topf : src.ls(true)) {
+            // 忽略第一层特殊的目录
+            if (topIgnores.contains(topf.name()))
+                continue;
+            // 目录或者特殊的文件类型会被纳入索引
+            if (topf.isDir() || topf.matchType("^zdoc|man|md|markdown|html?$")) {
+                ZDocIndex topzi = new ZDocIndex().parent(index);
+                _read_index_by_native(topf, topzi);
+            }
+        }
+        _read_index_by_native(src, index);
+    }
+
+    private void _read_index_by_native(ZFile zf, ZDocIndex zi) {
+        zi.file(zf);
+        if (zf.isDir()) {
+            for (ZFile subf : ((ZDir) zf).ls(true)) {
+                // 目录或者特殊的文件类型会被纳入索引
+                if (subf.isDir()
+                    || subf.matchType("^zdoc|man|md|markdown|html?$")) {
+                    ZDocIndex subzi = new ZDocIndex().parent(zi);
+                    _read_index_by_native(subf, subzi);
+                }
+            }
+        }
+    }
+
+    private void _read_index_by_xml(ZFile indexml) {
+        try {
+            Document doc = Lang.xmls().parse(io.read(indexml));
+            Element root = doc.getDocumentElement();
+            _read_index_by_XmlElement(src, root, index);
+        }
+        catch (Exception e) {
+            throw Lang.wrapThrow(e);
+        }
+    }
+
+    private void _read_index_by_XmlElement(ZFile zf, Element ele, ZDocIndex zi) {
+        // 设置自身的值
+        zi.file(zf);
+        zi.author(Xmls.getAttr(ele, "author"));
+        zi.title(Xmls.getAttr(ele, "title"));
+
+        // 判断是否有子
+        List<Element> subeles = Xmls.children(ele, "doc");
+        if (!subeles.isEmpty() && !zf.isDir()) {
+            throw Lang.makeThrow("'%s' should be a DIR!", zf.path());
+        }
+
+        // 循环子节点
+        for (Element subele : subeles) {
+            ZDocIndex subzi = new ZDocIndex();
+            subzi.parent(zi);
+            subzi.path(Xmls.getAttr(subele, "path"));
+            ZFile subf = ((ZDir) zf).check(subzi.path());
+            _read_index_by_XmlElement(subf, subele, subzi);
+        }
     }
 
     private void _read_rss(MultiLineProperties pp) {

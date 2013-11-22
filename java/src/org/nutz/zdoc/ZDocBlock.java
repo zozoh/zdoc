@@ -94,10 +94,12 @@ public class ZDocBlock {
         int i = 0;
         while (i < l && it.hasNext()) {
             it.next();
+            i++;
         }
         List<ZDocLine> list = new ArrayList<ZDocLine>(sz);
         while (it.hasNext() && i < maxOff) {
             list.add(it.next());
+            i++;
         }
         return list;
     }
@@ -112,7 +114,7 @@ public class ZDocBlock {
     public ZDocBlock mergeWith(ZDocBlock block) {
         if (null != block) {
             for (ZDocLine line : block.lines) {
-                lines.add(line);
+                _add(line);
                 // 如果不是列表，则需要对齐 indent
                 if (!line.isForList()) {
                     line.alignText(indent);
@@ -160,26 +162,6 @@ public class ZDocBlock {
             }
             return true;
         }
-        // HR 一定不可以添加
-        if (HR == type) {
-            return false;
-        }
-        // 如果是 BLOCKQUOTE，那么也可以接受 PARAGRAPH
-        if (BLOCKQUOTE == type) {
-            if (type == line.type || line.type == PARAGRAPH) {
-                _add(line);
-                return true;
-            }
-            return false;
-        }
-        // 如果行是 TSEP 那么本块将变成表格，当前所有行均为 THEAD
-        if (TSEP == line.type) {
-            type = TABLE;
-            for (ZDocLine zl : lines)
-                zl.type = THEAD;
-            _add(line);
-            return true;
-        }
         // 如果本块是表格，那么无需考虑缩进，并且所加入的行均设为 TR
         // 直到遇到一个空行
         if (TABLE == type) {
@@ -193,7 +175,19 @@ public class ZDocBlock {
         }
         // 如果当前行是空行，一定可以加入
         if (BLANK == line.type) {
-            lines.add(line);
+            _add(line);
+            return true;
+        }
+        // HR 一定不可以添加
+        if (HR == type) {
+            return false;
+        }
+        // 如果行是 TSEP 那么本块将变成表格，当前所有行均为 THEAD
+        if (TSEP == line.type) {
+            type = TABLE;
+            for (ZDocLine zl : lines)
+                zl.type = THEAD;
+            _add(line);
             return true;
         }
         // 如果本身就是注释
@@ -208,10 +202,14 @@ public class ZDocBlock {
             }
             return false;
         }
-        // 如果最后一个是空行，那么只有空行能被加入
+        // 如果最后一个是空行，那么就不能被添加
         if (BLANK == lastLine.type) {
-            if (BLANK == line.type) {
-                lines.add(line);
+            return false;
+        }
+        // 如果是 BLOCKQUOTE，那么也可以接受 PARAGRAPH
+        if (BLOCKQUOTE == type) {
+            if (type == line.type || line.type == PARAGRAPH) {
+                _add(line);
                 return true;
             }
             return false;

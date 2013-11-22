@@ -1,5 +1,8 @@
 package org.nutz.am;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * 并联自动机
  * 
@@ -74,14 +77,16 @@ public abstract class ParallelAm<T> extends ComposAm<T> {
         }
 
         T o;
+        List<AmStack<T>> dels = new ArrayList<AmStack<T>>(as.candidates.size());
         for (AmStack<T> stack : as.candidates) {
             AmStatus st = stack.eat(c);
             switch (st) {
             case DROP:
-                as.candidates.remove(stack);
+                // as.candidates.remove(stack);
+                dels.add(stack);
                 break;
             case CONTINUE:
-                continue;
+                break;
             case DONE:
                 o = stack.close();
                 as.mergeHead(o);
@@ -105,6 +110,9 @@ public abstract class ParallelAm<T> extends ComposAm<T> {
                 return AmStatus.DROP;
             }
         }
+
+        // 清除需要删除的候选堆栈
+        as.candidates.removeAll(dels);
 
         // 还有候选的话，就继续
         if (as.hasCandidates())
