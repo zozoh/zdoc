@@ -18,7 +18,7 @@ public class Parsing {
 
     public BufferedReader reader;
 
-    public List<ZDocBlock> blocks;
+    public List<ZBlock> blocks;
 
     public int depth;
 
@@ -36,7 +36,7 @@ public class Parsing {
         this.reader = Streams.buffr(reader);
         this.root = new ZDocNode();
         this.current = root;
-        this.blocks = new ArrayList<ZDocBlock>();
+        this.blocks = new ArrayList<ZBlock>();
         this.stack = new ZDocAmStack(10);
         this.raw = new StringBuilder();
     }
@@ -46,17 +46,34 @@ public class Parsing {
      * 
      * @param str
      *            字符串
+     * @return 自身
+     * 
+     * @see #fillEles(ZDocNode, String)
      */
-    public void fillCurrentEles(String str) {
+    public ZDocNode fillCurrentEles(String str) {
+        return fillEles(current, str);
+    }
+
+    /**
+     * 根据一段字符串填充节点
+     * 
+     * @param nd
+     *            节点
+     * @param str
+     *            字符串
+     * @return 自身
+     */
+    public ZDocNode fillEles(ZDocNode nd, String str) {
         ZDocEle ele = parseString(str);
         // 这种情况需要仅仅加入所有的子 ...
         if (ele.isWrapper()) {
-            current.addEles(ele.children());
+            nd.addEles(ele.children());
         }
         // 加入自己就成
         else {
-            current.addEle(ele);
+            nd.addEle(ele);
         }
+        return nd;
     }
 
     /**

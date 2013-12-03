@@ -1,4 +1,4 @@
-package org.nutz.zdoc.util;
+package org.nutz.zdoc.am;
 
 import static org.junit.Assert.assertEquals;
 import static org.nutz.zdoc.ZDocEleType.IMG;
@@ -14,16 +14,26 @@ import org.nutz.am.AmStatus;
 import org.nutz.lang.Lang;
 import org.nutz.zdoc.AbstractParsingTest;
 import org.nutz.zdoc.ZDocEle;
-import org.nutz.zdoc.am.ZDocAmStack;
-import org.nutz.zdoc.am.ZDocParallelAm;
 
-public class AmsTest extends AbstractParsingTest {
+public class AmTest extends AbstractParsingTest {
 
     private AmFactory fa;
 
     @Before
     public void before() {
         fa = NewAmFactory("zdoc");
+    }
+
+    @Test
+    public void test_em_in_link() {
+        ZDocEle root;
+        // ...................................................
+        root = _parse("[a.zdoc {*A}]");
+        root.normalize();
+        assertEquals(0, root.children().size());
+
+        _Cele(root, -1, INLINE, "A", "a.zdoc");
+        _Cmap("{'font-weight':'bold'}", root.style());
     }
 
     @Test
@@ -105,8 +115,8 @@ public class AmsTest extends AbstractParsingTest {
         assertEquals(0, root.children().size());
 
         _Cele(root, -1, IMG, null, "x.png");
-        assertEquals(0, root.width());
-        assertEquals(0, root.height());
+        assertEquals(-1, root.width());
+        assertEquals(-1, root.height());
         assertEquals("a.zdoc", root.href());
         // ...................................................
         root = _parse("[a.zdoc]").normalize();
@@ -136,14 +146,14 @@ public class AmsTest extends AbstractParsingTest {
 
         _Cele(root, -1, IMG, null, "abc.png");
         assertEquals(100, root.width());
-        assertEquals(0, root.height());
+        assertEquals(-1, root.height());
         // ...................................................
         root = _parse("<x80:abc.png>");
         root.normalize();
         assertEquals(0, root.children().size());
 
         _Cele(root, -1, IMG, null, "abc.png");
-        assertEquals(0, root.width());
+        assertEquals(-1, root.width());
         assertEquals(80, root.height());
         // ...................................................
         root = _parse("<100x80:abc.png TheABC>");

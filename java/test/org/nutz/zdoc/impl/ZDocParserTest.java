@@ -140,7 +140,7 @@ public class ZDocParserTest extends AbstractParsingTest {
 
     @Test
     public void test_simple_table() {
-        ZDocNode root = PSf("org/nutz/zdoc/f/header_table.txt");
+        ZDocNode root = PSf("org/nutz/zdoc/f/header_table.zdoc");
 
         assertEquals(1, root.children().size());
         ZDocNode h1 = root.children().get(0);
@@ -150,18 +150,18 @@ public class ZDocParserTest extends AbstractParsingTest {
         assertEquals(1, h1.children().size());
         ZDocNode table = h1.children().get(0);
 
-        _C(table, TABLE, 3, "{cols:[null,null]}", "");
+        _C(table, TABLE, 3, "{$cols:['auto','auto']}", "");
         _C(table, THEAD, 2, "{}", "", 0);
-        _C(table, TH, 0, "{}", "H1", 0, 0);
-        _C(table, TH, 0, "{}", "H2", 0, 1);
+        _C(table, TH, 0, "{}", " H1  ", 0, 0);
+        _C(table, TH, 0, "{}", " H2  ", 0, 1);
 
         _C(table, TR, 2, "{}", "", 1);
-        _C(table, TD, 0, "{}", "C11", 1, 0);
-        _C(table, TD, 0, "{}", "C12", 1, 1);
+        _C(table, TD, 0, "{}", " C11 ", 1, 0);
+        _C(table, TD, 0, "{}", " C12 ", 1, 1);
 
         _C(table, TR, 2, "{}", "", 2);
-        _C(table, TD, 0, "{}", "C21", 2, 0);
-        _C(table, TD, 0, "{}", "C22", 2, 1);
+        _C(table, TD, 0, "{}", " C21 ", 2, 0);
+        _C(table, TD, 0, "{}", " C22 ", 2, 1);
 
     }
 

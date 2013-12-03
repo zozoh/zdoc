@@ -6,7 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.nutz.lang.Nums;
-import org.nutz.zdoc.ZDocBlock;
+import org.nutz.zdoc.ZBlock;
 
 public class ZD {
 
@@ -60,7 +60,7 @@ public class ZD {
             // 继续下一个字符
         }
         // 最后看看是否需要加入最后一项
-        if (i > off && i < cs.length) {
+        if (i > off && i <= cs.length) {
             list.add(new String(cs, off, i - off));
         }
 
@@ -84,13 +84,13 @@ public class ZD {
      *            块列表
      * @return 文档块，如果传入集合为空，返回 null
      */
-    public static ZDocBlock merge(Collection<ZDocBlock> blocks) {
+    public static ZBlock merge(Collection<ZBlock> blocks) {
         if (null == blocks || blocks.isEmpty())
             return null;
 
-        Iterator<ZDocBlock> it = blocks.iterator();
+        Iterator<ZBlock> it = blocks.iterator();
         // 第一块
-        ZDocBlock b = it.next();
+        ZBlock b = it.next();
 
         // 融合之后的块
         while (it.hasNext()) {

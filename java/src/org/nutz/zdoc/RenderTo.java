@@ -1,5 +1,6 @@
 package org.nutz.zdoc;
 
+import org.nutz.vfs.ZDir;
 import org.nutz.vfs.ZIO;
 
 /**
@@ -20,5 +21,16 @@ public abstract class RenderTo extends ZDocHome {
      *            输出用的 IO
      */
     public abstract void render(ZIO io);
+
+    protected ZDir dest;
+
+    public ZDir dest() {
+        return dest;
+    }
+
+    public RenderTo dest(ZDir dest) {
+        this.dest = dest;
+        return this;
+    }
 
 }

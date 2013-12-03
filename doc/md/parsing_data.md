@@ -7,24 +7,24 @@
 
 抽象的看，任何一个文档都可以下列结构来描述
 
-	文档级属性 {         # ZDocMetas
-		标题     
-		作者
-		子标题
-		创建日期
-		指定样式表
-		…
-	}
-	
-	标题                # ZDocNode.depth=0
-	
-		… 一块内容 …     # ZDocNode.depth=-1
-		
-		标题 A
-			
-			… 一块内容 …
-			… 一块内容 …
-			
+    文档级属性 {         # ZDocMetas
+        标题     
+        作者
+        子标题
+        创建日期
+        指定样式表
+        …
+    }
+    
+    标题                # ZDocNode.depth=0
+    
+        … 一块内容 …     # ZDocNode.depth=-1
+        
+        标题 A
+            
+            … 一块内容 …
+            … 一块内容 …
+            
 * 无论对于 HTML, markdown 我们都可以将其文档理解成这样的结构
 * 当然，我们可以用 zDoc 推荐的书写方式更加直白的写出这样的结构。
 
@@ -41,7 +41,7 @@ NODE      | 文档节点，通常作为文档的根节点
 HEADER    | 标题，根据 depth 来决定标题级别
 PARAGRAPH | 普通文字块，不能有子节点
 BLOCKQUOTE| 缩进文字，子节点只能是 BLOCKQUOTE
-TABLE     | 表格，支持 attrs `cols`，是个数组，表示自身的列居左居右设置
+TABLE     | 表格，支持 attrs `$cols`，是个数组，表示自身的列居左居右设置
 THEAD     | 表头行
 TH        | 表头单元格
 TR        | 表格行
@@ -58,50 +58,51 @@ OBJ       | 嵌入式对象
 
 #### ZDocNode 对象的结构
 
-	{
-		type    : NODE|…|OBJ,
-		depth   : 0,              // 深度，0 表示根节点
-		eles    : [ZDocEle..],     // 本节点的显示内容
-		parent  : ZDocNode,        // 父节点，文档只有一个根节点
-		children: [ZDocNode..],    // 子节点，空和 null 是一个意思
-		attrs   : {..},            // 对于这个段落的补充描述，是个名值对象
-	}
-	
+    {
+        type    : NODE|…|OBJ,
+        depth   : 0,              // 深度，0 表示根节点
+        eles    : [ZDocEle..],     // 本节点的显示内容
+        parent  : ZDocNode,        // 父节点，文档只有一个根节点
+        children: [ZDocNode..],    // 子节点，空和 null 是一个意思
+        attrs   : {..},            // 对于这个段落的补充描述，是个名值对象
+    }
+    
 * 一个解析出来的 ZDocNode 树，根节点必定为 `NODE`
 * 根节点的 `attrs` 就是文档的属性
-	
+    
 #### 标题 : HEADER
 
 标题的 depth 一定不是 -1 ，否则就是错误
-	
+    
 #### 表格 : TABLE
 
 表格的父子结构必须是
 
-	TABLE       // 属性 "cols" 存放了各个列对齐方式，数组，null 表示自动
-		THEAD   // 可选
-			TH
-		TR      
-			TD
-		
+    TABLE       // 属性 "$cols" 存放了各个列对齐方式，数组，null 表示自动
+        THEAD   // 可选
+            TH
+        TR      
+            TD
+        
 #### 列表 : OL|UL|LI
 
 列表的父子结构必须
 
-	OL | UL   // 属性 "itype" 可以是 "#,1,a,A,i,I" 任意一个
-		LI
-			OL | UL
-				LI    // 可以没有子 BLOCK
-					PARAGRAPH
-					PARAGRAPH
+    OL | UL   // 属性 "itype" 可以是 "#,1,a,A,i,I" 任意一个
+        LI
+            OL | UL
+                LI    // 可以没有子 BLOCK
+                    PARAGRAPH
+                    PARAGRAPH
 
 
-	
+    
 #### 代码 : CODE
 
 * 代码里的 content 会是纯文本
 * 对于 \n 敏感，认为是换行
-	
+* 属性 `code-type` 可选，为进一步说明代码的格式内容
+    
 #### 嵌入式对象 : OBJ
 
 * content 会被认为是一段 JSON 字符串，描述这个对象
@@ -121,29 +122,33 @@ OBJ       | 嵌入式对象
 
 ZDocEle 会有如下一些类型
 
-TEXT | 普通文字 
-BR   | 段内换行
-SUP  | 标注
-SUB  | 脚注
+Type   | 说明
+-------|-------------------
+INLINE | 普通行内文字 
+QUOTE  | 被反引号括起来的文字
+IMG    | 图片
+BR     | 段内换行
+SUP    | 标注
+SUB    | 脚注
 
 那么它的数据结构为:
 
-	{
-		type  : TEXT|..|SUB ,  // 元素的类型
-		quote : ` | ' | "      // 被引号包裹的类型，0 表示没有被引号包裹
-		href  : '…',           // 为这个元素包裹一个链接
-		src   : '…',           // 元素为一个图片
-		width : 1920,          // 图片宽度，仅对图片有效，<=0 表示不指定
-		height: 1080,          // 图片高度，仅对图片有效，<=0 表示不指定
-		text  : 'xxxxx',       // 文字内容，对于图片为图片的 title    
-		style : {              // 元素的显示风格，支持的同义 CSS 属性为
-			"font-weight" : "bold",
-			"font-style" : "italic",
-			"text-decoration" : "underline",
-			"color" : "#00A",
-			"background-color" : "#FF0"
-		}
-	}
+    {
+        type  : TEXT|..|SUB ,  // 元素的类型
+        quote : ` | ' | "      // 被引号包裹的类型，0 表示没有被引号包裹
+        href  : '…',           // 为这个元素包裹一个链接
+        src   : '…',           // 元素为一个图片
+        width : 1920,          // 图片宽度，仅对图片有效，<=0 表示不指定
+        height: 1080,          // 图片高度，仅对图片有效，<=0 表示不指定
+        text  : 'xxxxx',       // 文字内容，对于图片为图片的 title    
+        style : {              // 元素的显示风格，支持的同义 CSS 属性为
+            "font-weight" : "bold",
+            "font-style" : "italic",
+            "text-decoration" : "underline",
+            "color" : "#00A",
+            "background-color" : "#FF0"
+        }
+    }
 
 ### 弱弱的总结一下
 
@@ -190,7 +195,7 @@ SUB  | 脚注
 
 
 
-	
+    
 
 
 

@@ -1,5 +1,10 @@
 package org.nutz.zdoc;
 
+import static org.nutz.zdoc.ZDocNodeType.LI;
+import static org.nutz.zdoc.ZDocNodeType.NODE;
+import static org.nutz.zdoc.ZDocNodeType.OL;
+import static org.nutz.zdoc.ZDocNodeType.UL;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -8,6 +13,7 @@ import java.util.List;
 
 import org.nutz.json.Json;
 import org.nutz.json.JsonFormat;
+import org.nutz.lang.Each;
 import org.nutz.lang.Strings;
 
 public class ZDocNode {
@@ -20,6 +26,14 @@ public class ZDocNode {
 
     private ZDocNode parent;
 
+    private ZDocNode firstChild;
+
+    private ZDocNode lastChild;
+
+    private ZDocNode prev;
+
+    private ZDocNode next;
+
     private List<ZDocNode> children;
 
     private ZDocAttrs attrs;
@@ -28,7 +42,11 @@ public class ZDocNode {
         this.eles = new LinkedList<ZDocEle>();
         this.children = new LinkedList<ZDocNode>();
         this.attrs = new ZDocAttrs();
-        this.type = ZDocNodeType.NODE;
+        this.type = NODE;
+    }
+
+    public boolean isNew() {
+        return type == ZDocNodeType.NODE && isEmpty();
     }
 
     public String toString() {
@@ -53,19 +71,15 @@ public class ZDocNode {
     }
 
     public boolean isEmpty() {
-        return eles.isEmpty() && children.isEmpty();
+        return eles.isEmpty() && children.isEmpty() && attrs.isEmpty();
     }
 
     public boolean isTop() {
         return 0 == depth;
     }
 
-    public boolean isHeader() {
-        return ZDocNodeType.HEADER == type;
-    }
-
-    public boolean isBlockquote() {
-        return ZDocNodeType.BLOCKQUOTE == type;
+    public boolean is(ZDocNodeType type) {
+        return this.type == type;
     }
 
     public ZDocNodeType type() {
@@ -83,6 +97,10 @@ public class ZDocNode {
 
     public ZDocNode depth(int depth) {
         this.depth = depth;
+        return normalizeDepth();
+    }
+
+    public ZDocNode normalizeDepth() {
         if (null != this.children) {
             int d2 = depth + 1;
             for (ZDocNode child : children)
@@ -133,8 +151,84 @@ public class ZDocNode {
         return parent;
     }
 
+    public ZDocNode firstChild() {
+        return firstChild;
+    }
+
+    public ZDocNode lastChild() {
+        return lastChild;
+    }
+
+    public ZDocNode prev() {
+        return prev;
+    }
+
+    public ZDocNode prev(ZDocNode nd) {
+        this.prev = nd;
+        nd.next = this;
+        return this;
+    }
+
+    public ZDocNode prevEach(Each<ZDocNode> callback) {
+        ZDocNode nd = this;
+        int i = 0;
+        while (nd.prev != null) {
+            callback.invoke(i++, nd.prev, -1);
+            nd = nd.prev;
+        }
+        return this;
+    }
+
+    public List<ZDocNode> prevAll() {
+        final List<ZDocNode> list = new LinkedList<ZDocNode>();
+        prevEach(new Each<ZDocNode>() {
+            public void invoke(int index, ZDocNode nd, int length) {
+                list.add(nd);
+            }
+        });
+        return list;
+    }
+
+    public ZDocNode next() {
+        return next;
+    }
+
+    public ZDocNode next(ZDocNode nd) {
+        this.next = nd;
+        nd.prev = this;
+        return this;
+    }
+
+    public ZDocNode nextEach(Each<ZDocNode> callback) {
+        ZDocNode nd = this;
+        int i = 0;
+        while (nd.next != null) {
+            callback.invoke(i++, nd.next, -1);
+            nd = nd.next;
+        }
+        return this;
+    }
+
+    public List<ZDocNode> nextAll() {
+        final List<ZDocNode> list = new LinkedList<ZDocNode>();
+        nextEach(new Each<ZDocNode>() {
+            public void invoke(int index, ZDocNode nd, int length) {
+                list.add(nd);
+            }
+        });
+        return list;
+    }
+
     public ZDocNode parent(ZDocNode parent) {
         this.parent = parent;
+
+        if (!parent.hasChildren()) {
+            parent.firstChild = this;
+            parent.lastChild = this;
+        } else {
+            parent.lastChild.next(this);
+            parent.lastChild = this;
+        }
         this.parent.children.add(this);
         this.depth(parent.depth + 1);
 
@@ -145,18 +239,53 @@ public class ZDocNode {
         return children;
     }
 
-    public ZDocNode normalize() {
+    public boolean hasChildren() {
+        return null != children && !children.isEmpty();
+    }
+
+    public ZDocNode normalizeChildren() {
         if (!(eles instanceof ArrayList<?>)) {
             ArrayList<ZDocEle> list = new ArrayList<ZDocEle>(eles.size());
             list.addAll(eles);
             eles = list;
         }
+        // 对于 LI 来说，如果有子 LI ，则用 UL|OL（根据第一个LI来决定）包裹
+        if (is(LI) && hasChildren()) {
+            ZDocNode li0 = node(0);
+            ZDocNode xL = new ZDocNode();
+            if ("OL".equalsIgnoreCase(li0.attrs().getString("$line-type", "XX"))) {
+                xL.type(OL);
+            } else {
+                xL.type(UL);
+            }
+            xL.takeoverChildren(this);
+            xL.parent(this);
+        }
+        // 确保所有的子节点都是 ArrayList (可能没啥用 ...)
         if (!(children instanceof ArrayList<?>)) {
             ArrayList<ZDocNode> list = new ArrayList<ZDocNode>(children.size());
-            list.addAll(children);
+            // 抛弃空节点
+            for (ZDocNode child : children) {
+                if (!child.isNew())
+                    list.add(child.normalizeChildren());
+            }
             children = list;
-            for (ZDocNode child : children)
-                child.normalize();
+        }
+        return this;
+    }
+
+    /**
+     * 接管一个节点全部的子节点
+     * 
+     * @param nd
+     *            节点
+     * @return 自身
+     */
+    public ZDocNode takeoverChildren(ZDocNode nd) {
+        if (nd.hasChildren()) {
+            for (ZDocNode child : nd.children) {
+                child.parent(this);
+            }
         }
         return this;
     }

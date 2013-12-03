@@ -12,6 +12,7 @@ import org.nutz.am.AmFactory;
 import org.nutz.json.Json;
 import org.nutz.lang.Lang;
 import org.nutz.lang.Streams;
+import org.nutz.lang.util.Context;
 
 public class AbstractParsingTest {
 
@@ -71,5 +72,9 @@ public class AbstractParsingTest {
         Map m0 = Json.fromJson(HashMap.class, expect);
         Map m1 = Json.fromJson(HashMap.class, mapstr);
         assertTrue(Lang.equals(m0, m1));
+    }
+
+    protected void _Cmap(String expect, Context ctx) {
+        _Cmap(expect, ctx.getInnerMap());
     }
 }

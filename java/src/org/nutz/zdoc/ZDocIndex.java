@@ -3,8 +3,11 @@ package org.nutz.zdoc;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.nutz.lang.Each;
 import org.nutz.lang.Strings;
 import org.nutz.lang.util.Callback2;
+import org.nutz.lang.util.Node;
+import org.nutz.lang.util.SimpleNode;
 import org.nutz.vfs.ZFile;
 
 /**
@@ -12,11 +15,7 @@ import org.nutz.vfs.ZFile;
  * 
  * @author zozoh(zozohtnt@gmail.com)
  */
-public class ZDocIndex {
-
-    private ZDocIndex parent;
-
-    private List<ZDocIndex> children;
+public class ZDocIndex extends SimpleNode<ZFile> {
 
     private String title;
 
@@ -24,15 +23,9 @@ public class ZDocIndex {
 
     private String path;
 
-    private ZFile file;
-
     private ZDocNode docRoot;
 
     private String rawTex;
-
-    public ZDocIndex() {
-        children = new LinkedList<ZDocIndex>();
-    }
 
     public String toString() {
         return toString(0);
@@ -41,26 +34,16 @@ public class ZDocIndex {
     public String toString(int indent) {
         StringBuilder sb = new StringBuilder();
         String prefix = Strings.dup("    ", indent);
-        sb.append(prefix).append(path).append(" >> ").append(file);
+        sb.append(prefix).append(path).append(" >> ").append(file());
         if (null != author || null != title) {
             sb.append(prefix)
               .append(String.format("\n[%s] @%s", title, author));
         }
         indent++;
-        for (ZDocIndex child : children) {
+        for (ZDocIndex child : children()) {
             sb.append('\n').append(child.toString(indent));
         }
         return sb.toString();
-    }
-
-    public int depth() {
-        int re = 0;
-        ZDocIndex zi = this;
-        while (null != zi.parent) {
-            re++;
-            zi = zi.parent;
-        }
-        return re;
     }
 
     /**
@@ -71,33 +54,40 @@ public class ZDocIndex {
      * @param walker
      *            遍历器
      */
-    public void walk(Callback2<ZDocIndex, ZFile> walker) {
-        if (null != file)
-            walker.invoke(this, file);
-        for (ZDocIndex child : children)
-            child.walk(walker);
+    public void walk(final Callback2<ZDocIndex, ZFile> walker) {
+        if (null != file())
+            walker.invoke(this, file());
+
+        eachChild(new Each<ZDocIndex>() {
+            public void invoke(int index, ZDocIndex zi, int length) {
+                zi.walk(walker);
+            }
+        });
+    }
+
+    private List<ZDocIndex> children() {
+        final List<ZDocIndex> list = new LinkedList<ZDocIndex>();
+        eachChild(new Each<ZDocIndex>() {
+            public void invoke(int index, ZDocIndex zi, int length) {
+                list.add(zi);
+            }
+        });
+        return list;
     }
 
     public ZDocIndex clear() {
         title = null;
         author = null;
-        file = null;
-        children.clear();
+        docRoot = null;
+        rawTex = null;
+        set(null).clearChildren();
         return this;
     }
 
-    public ZDocIndex parent() {
-        return parent;
-    }
-
-    public ZDocIndex parent(ZDocIndex parent) {
-        this.parent = parent;
-        parent.children().add(this);
+    @Override
+    public ZDocIndex parent(Node<ZFile> node) {
+        super.parent(node);
         return this;
-    }
-
-    public List<ZDocIndex> children() {
-        return children;
     }
 
     public String title() {
@@ -128,11 +118,11 @@ public class ZDocIndex {
     }
 
     public ZFile file() {
-        return file;
+        return this.get();
     }
 
     public ZDocIndex file(ZFile file) {
-        this.file = file;
+        this.set(file);
         return this;
     }
 

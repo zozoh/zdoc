@@ -1,20 +1,17 @@
 package org.nutz.zdoc;
 
-public enum ZDocLineType {
+public enum ZLineType {
 
     // LIST
     UL, OL,
 
-    // TABLE
-    TABLE, TR, THEAD, TSEP,
+    // 特殊块
+    TABLE, HTML, CODE, COMMENT,
 
     // HR
     HR,
 
     // 文字块
     PARAGRAPH, BLOCKQUOTE, BLANK,
-
-    // 注释
-    COMMENT, COMMENT_BEGIN, COMMENT_END
 
 }

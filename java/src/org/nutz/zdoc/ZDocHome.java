@@ -32,19 +32,19 @@ public class ZDocHome {
 
     private ZIO io;
 
-    private ZDir src;
+    protected ZDir src;
 
-    private ZCache<ZDocHtmlCacheItem> libs;
+    protected ZCache<ZDocHtmlCacheItem> libs;
 
-    private ZCache<ZDocHtmlCacheItem> tmpl;
+    protected ZCache<ZDocHtmlCacheItem> tmpl;
 
-    private List<ZDir> rss;
+    protected List<ZDir> rss;
 
-    private Context vars;
+    protected Context vars;
 
-    private List<ZDocRule> rules;
+    protected List<ZDocRule> rules;
 
-    private ZDocIndex index;
+    protected ZDocIndex index;
 
     // 顶层目录都有哪些文件和目录不要扫描的
     private Set<String> topIgnores;
@@ -147,8 +147,8 @@ public class ZDocHome {
                     Parsing ing = new Parsing(io.readString(zf));
                     ing.fa = fa_zdoc;
                     paZDoc.build(ing);
-                    ing.root.normalize();
-                    index.docRoot(ing.root).rawTex(ing.raw);
+                    ing.root.normalizeChildren();
+                    zi.docRoot(ing.root).rawTex(ing.raw);
                 }
                 // Markdown
                 else if (zf.matchType("^md|markdown$")) {
@@ -159,7 +159,7 @@ public class ZDocHome {
                 else if (zf.matchType("^html?$")) {
                     log.infof("html: %s", rph);
                     String html = Streams.readAndClose(io.readString(zf));
-                    index.rawTex(html);
+                    zi.rawTex(html);
                 }
             }
         });

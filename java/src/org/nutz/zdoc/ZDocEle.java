@@ -66,6 +66,10 @@ public class ZDocEle {
         return this;
     }
 
+    public boolean is(ZDocEleType type) {
+        return this.type == type;
+    }
+
     /**
      * @return 本元素是否仅仅是一组元素的包裹。<br>
      *         实际上，如果自己没有任何属性，并且文字为空，那么就是了
@@ -115,6 +119,25 @@ public class ZDocEle {
 
     public <T> T attrAs(Class<T> type, String name) {
         return attrs.getAs(type, name);
+    }
+
+    public boolean hasAttr(String name) {
+        return attrs.has(name);
+    }
+
+    public boolean hasAttrAs(String name, String value) {
+        return hasAttrAs(name, value, true);
+    }
+
+    public boolean hasAttrAs(String name, String value, boolean ignoreCase) {
+        if (null == value)
+            return !hasAttr(name);
+        String v = attrString(name);
+        if (null == v)
+            return false;
+        if (ignoreCase)
+            return v.equalsIgnoreCase(value);
+        return v.equals(value);
     }
 
     public ZDocEle attr(String name, Object value) {
@@ -182,7 +205,26 @@ public class ZDocEle {
     }
 
     public String style(String name) {
-        return style().get(name);
+        return style().getString(name);
+    }
+
+    public boolean hasStyle(String name) {
+        return style().has(name);
+    }
+
+    public boolean hasStyleAs(String name, String value) {
+        return hasAttrAs(name, value, true);
+    }
+
+    public boolean hasStyleAs(String name, String value, boolean ignoreCase) {
+        if (null == value)
+            return !hasAttr(name);
+        String v = attrString(name);
+        if (null == v)
+            return false;
+        if (ignoreCase)
+            return v.equalsIgnoreCase(value);
+        return v.equals(value);
     }
 
     public ZDocEle parent() {

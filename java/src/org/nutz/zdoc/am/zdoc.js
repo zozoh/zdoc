@@ -62,6 +62,10 @@ var ioc = {
 				refer:'zdocImg'
 			},{
 				refer:'zdocText'
+			},{
+				refer:'zdocQuote'
+			},{
+				refer:'zdocEm'
 			}]
 		}
 	},

@@ -1,17 +1,11 @@
 package org.nutz.zdoc;
 
-import static org.nutz.zdoc.ZDocLineType.BLANK;
-import static org.nutz.zdoc.ZDocLineType.BLOCKQUOTE;
-import static org.nutz.zdoc.ZDocLineType.COMMENT;
-import static org.nutz.zdoc.ZDocLineType.COMMENT_BEGIN;
-import static org.nutz.zdoc.ZDocLineType.COMMENT_END;
-import static org.nutz.zdoc.ZDocLineType.HR;
-import static org.nutz.zdoc.ZDocLineType.OL;
-import static org.nutz.zdoc.ZDocLineType.PARAGRAPH;
-import static org.nutz.zdoc.ZDocLineType.THEAD;
-import static org.nutz.zdoc.ZDocLineType.TR;
-import static org.nutz.zdoc.ZDocLineType.TSEP;
-import static org.nutz.zdoc.ZDocLineType.UL;
+import static org.nutz.zdoc.ZLineType.BLANK;
+import static org.nutz.zdoc.ZLineType.BLOCKQUOTE;
+import static org.nutz.zdoc.ZLineType.HR;
+import static org.nutz.zdoc.ZLineType.OL;
+import static org.nutz.zdoc.ZLineType.PARAGRAPH;
+import static org.nutz.zdoc.ZLineType.UL;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -19,7 +13,7 @@ import java.util.regex.Pattern;
 import org.nutz.lang.Lang;
 import org.nutz.lang.Strings;
 
-public class ZDocLine {
+public class ZLine {
 
     public String origin;
 
@@ -29,14 +23,14 @@ public class ZDocLine {
 
     public int blockIndent;
 
-    public ZDocLineType type;
+    public ZLineType type;
 
     // OL 专用
     public char itype;
 
-    ZDocLine() {}
+    ZLine() {}
 
-    public ZDocLine(String line) {
+    public ZLine(String line) {
         origin = line;
         // 空白行，缩进无所谓
         if (Strings.isBlank(line)) {
@@ -67,23 +61,9 @@ public class ZDocLine {
         text = line.substring(i);
         String trimText = this.trimmed();
 
-        // 计算类型
-        // 注释
-        if (trimText.startsWith("<!--")) {
-            type = COMMENT_BEGIN;
-            text = trimText.substring("<!--".length());
-            if (text.endsWith("-->")) {
-                type = COMMENT;
-                text = text.substring(0, text.length() - "-->".length());
-            }
-        }
-        // 注释结尾
-        else if (trimText.endsWith("-->")) {
-            type = COMMENT_END;
-            text = trimText.substring(0, trimText.length() - "-->".length());
-        }
+        // 计算类型 ...
         // UL
-        else if (text.startsWith("* ")) {
+        if (text.startsWith("* ")) {
             type = UL;
             text = text.substring(2);
         }
@@ -103,16 +83,6 @@ public class ZDocLine {
         else if (trimText.matches("^[-]{4,}$")) {
             type = HR;
             text = null;
-        }
-        // TSEP
-        else if (trimText.matches("^[ \t:|+-]{3,}$")) {
-            type = TSEP;
-            text = trimText;
-        }
-        // TR
-        else if (Strings.isQuoteBy(trimText, "||", "||")) {
-            type = TR;
-            text = trimText;
         }
         // BLOCKQUOTE
         else if (text.startsWith("> ")) {
@@ -145,7 +115,7 @@ public class ZDocLine {
      *            期望的缩进
      * @return 自身
      */
-    public ZDocLine alignText(int indent) {
+    public ZLine alignText(int indent) {
         // 不需要调整
         if (this.indent == indent) {
             return this;
@@ -207,10 +177,6 @@ public class ZDocLine {
 
     public boolean isForList() {
         return UL == type || OL == type;
-    }
-
-    public boolean isForTable() {
-        return TR == type || THEAD == type || TSEP == type;
     }
 
     public String toString() {
