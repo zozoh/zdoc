@@ -22,6 +22,10 @@ public class ZDocRule {
         return this;
     }
 
+    public boolean match(String rph) {
+        return regex.matcher(rph).find();
+    }
+
     public String key() {
         return key;
     }

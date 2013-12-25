@@ -25,7 +25,7 @@ public class ZLine {
 
     public ZLineType type;
 
-    // OL 专用
+    // OL 专用，可以是 '#','*',或者 0-9,A-Z,a-z
     public char itype;
 
     ZLine() {}

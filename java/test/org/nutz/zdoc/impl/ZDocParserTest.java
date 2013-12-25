@@ -6,7 +6,9 @@ import static org.nutz.zdoc.ZDocEleType.IMG;
 import static org.nutz.zdoc.ZDocEleType.INLINE;
 import static org.nutz.zdoc.ZDocNodeType.CODE;
 import static org.nutz.zdoc.ZDocNodeType.HEADER;
+import static org.nutz.zdoc.ZDocNodeType.LI;
 import static org.nutz.zdoc.ZDocNodeType.NODE;
+import static org.nutz.zdoc.ZDocNodeType.OL;
 import static org.nutz.zdoc.ZDocNodeType.PARAGRAPH;
 import static org.nutz.zdoc.ZDocNodeType.TABLE;
 import static org.nutz.zdoc.ZDocNodeType.TD;
@@ -32,6 +34,28 @@ public class ZDocParserTest extends AbstractParsingTest {
     @Before
     public void before() {
         parser = new ZDocParser();
+    }
+
+    @Test
+    public void test_hierachy_li_00() {
+        String s = "AAA\n";
+        s += "\t # L0\n";
+        s += "\t # L1\n";
+        s += "        # L11\n";
+        s += "\t # L2\n";
+
+        ZDocNode root = PS(s);
+
+        System.out.println(root.printAll());
+
+        _C(root, NODE, 1, "{}", "");
+        _C(root, HEADER, 1, "{}", "AAA", 0);
+        _C(root, OL, 3, "{}", "", 0, 0);
+        _C(root, LI, 0, "{}", "L0", 0, 0, 0);
+        _C(root, LI, 0, "{}", "L1", 0, 0, 1);
+        _C(root, OL, 1, "{}", "", 0, 0, 1, 0);
+        _C(root, LI, 0, "{}", "L11", 0, 0, 1, 0, 0);
+        _C(root, LI, 0, "{}", "L2", 0, 0, 2);
     }
 
     @Test

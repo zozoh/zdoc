@@ -28,6 +28,20 @@ public class ZDocScannerTest extends AbstractParsingTest {
     }
 
     @Test
+    public void test_li_indent() {
+        String s = "\t # L1\n";
+        s += "        # L11\n";
+        s += "\t # L2\n";
+
+        Parsing ing = scan(s);
+
+        assertEquals(3, ing.blocks.size());
+        _C(ing, 0, OL, 0, "L1", 1, OL, '#');
+        _C(ing, 1, OL, 0, "L11", 2, OL, '#');
+        _C(ing, 2, OL, 0, "L2", 1, OL, '#');
+    }
+
+    @Test
     public void test_multi_block() {
         String s = "A\n";
         s += "\n";

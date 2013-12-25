@@ -110,8 +110,7 @@ public class ZDocScanner extends AbstractScanner {
                     line = new ZLine(str);
                     lntp = evalLineType(line);
                     if (ZLineType.BLANK == lntp
-                        || lntp == block.type
-                        || line.indent > block.indent) {
+                        || (lntp == block.type && line.indent == block.indent)) {
                         block._add(line);
                     } else {
                         break;

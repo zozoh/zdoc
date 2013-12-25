@@ -6,6 +6,7 @@ import org.nutz.log.Log;
 import org.nutz.log.Logs;
 import org.nutz.vfs.simple.ZSimpleDir;
 import org.nutz.vfs.simple.ZSimpleIO;
+import org.nutz.zdoc.impl.FreemarkerTemplateFactory;
 import org.nutz.zdoc.impl.html.RenderToHtml;
 
 public class ZDoc {
@@ -29,12 +30,11 @@ public class ZDoc {
         log.info("....................................... parsing");
         home.src(src);
 
-        log.info("....................................... show indexes");
-        System.out.println(home.index());
-
         log.info("....................................... rendering");
         home.dest(dest);
-        home.render(io);
+        ZDocTemplateFactory tfa = new FreemarkerTemplateFactory(home);
+        Rendering ing = new Rendering(io, tfa);
+        home.render(ing);
 
         sw.stop();
         log.info("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");

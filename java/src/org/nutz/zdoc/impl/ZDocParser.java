@@ -272,12 +272,9 @@ public class ZDocParser implements Parser {
         // TODO 是否要把子 LI 用 OL 或者 UL 包裹呢？
         // 。。。 这个在 ZDocNode 的 normalizeChildren 里做了 ...
 
-        if (null != li) {
-            // 加入到树中
-            joinTo(ing.current, listRootNode);
-            // 记录 current
-            ing.current = li;
-        }
+        ing.current.type(listRootNode.type());
+        ing.current.attrs().putAll(listRootNode.attrs());
+        ing.current.takeoverChildren(listRootNode);
     }
 
     private void asCode(Parsing ing, ZBlock b) {

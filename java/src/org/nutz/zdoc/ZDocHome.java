@@ -3,6 +3,7 @@ package org.nutz.zdoc;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -12,8 +13,9 @@ import org.nutz.cache.ZCache;
 import org.nutz.lang.Lang;
 import org.nutz.lang.Streams;
 import org.nutz.lang.Strings;
+import org.nutz.lang.Times;
 import org.nutz.lang.Xmls;
-import org.nutz.lang.util.Callback2;
+import org.nutz.lang.util.Callback;
 import org.nutz.lang.util.Context;
 import org.nutz.lang.util.MultiLineProperties;
 import org.nutz.log.Log;
@@ -23,6 +25,7 @@ import org.nutz.vfs.ZFWalker;
 import org.nutz.vfs.ZFile;
 import org.nutz.vfs.ZIO;
 import org.nutz.zdoc.impl.ZDocParser;
+import org.nutz.zdoc.util.ZD;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -34,11 +37,11 @@ public class ZDocHome {
 
     protected ZDir src;
 
-    protected ZCache<ZDocHtmlCacheItem> libs;
+    protected ZCache<ZDocTmplObj> libs;
 
-    protected ZCache<ZDocHtmlCacheItem> tmpl;
+    protected ZCache<ZDocTmplObj> tmpl;
 
-    protected List<ZDir> rss;
+    protected List<ZFile> rss;
 
     protected Context vars;
 
@@ -46,14 +49,16 @@ public class ZDocHome {
 
     protected ZDocIndex index;
 
+    protected String htmlIndexPath;
+
     // 顶层目录都有哪些文件和目录不要扫描的
     private Set<String> topIgnores;
 
     public ZDocHome(ZIO io) {
         this.io = io;
-        this.libs = new ZCache<ZDocHtmlCacheItem>();
-        this.tmpl = new ZCache<ZDocHtmlCacheItem>();
-        this.rss = new ArrayList<ZDir>();
+        this.libs = new ZCache<ZDocTmplObj>();
+        this.tmpl = new ZCache<ZDocTmplObj>();
+        this.rss = new ArrayList<ZFile>();
         this.topIgnores = new HashSet<String>();
         this.vars = Lang.context();
         this.rules = new ArrayList<ZDocRule>();
@@ -104,6 +109,10 @@ public class ZDocHome {
             _read_rss(pp);
             _read_vars(pp);
 
+            // 读取其他配置字段
+            this.htmlIndexPath = Strings.sBlank(pp.get("zdoc-html-index-path"),
+                                                null);
+
         }
         // 没有配置文件，则试图给个默认值
         else {
@@ -135,11 +144,17 @@ public class ZDocHome {
         final AmFactory fa_zdoc = new AmFactory("org/nutz/zdoc/am/zdoc.js");
 
         // 开始遍历，解析每个文件
-        index.walk(new Callback2<ZDocIndex, ZFile>() {
-            public void invoke(ZDocIndex zi, ZFile zf) {
+        index.walk(new Callback<ZDocIndex>() {
+            @SuppressWarnings("unchecked")
+            public void invoke(ZDocIndex zi) {
+                ZFile zf = zi.file();
                 if (!zf.isFile())
                     return;
                 String rph = src.relative(zf);
+
+                zi.rpath(rph);
+                zi.bpath(Strings.dup("../", zi.depth()));
+                zi.lm(Times.D(zf.lastModified()));
 
                 // ZDoc
                 if (zf.matchType("^zdoc|man$")) {
@@ -161,6 +176,22 @@ public class ZDocHome {
                     String html = Streams.readAndClose(io.readString(zf));
                     zi.rawTex(html);
                 }
+
+                // 填充索引的关键属性
+                if (null != zi.docRoot()) {
+                    ZDocAttrs attrs = zi.docRoot().attrs();
+                    zi.author(attrs.getString("author", zi.author()));
+                    zi.title(attrs.getString("title", zi.title()));
+                    Object tags = attrs.get("tags");
+                    if (null != tags) {
+                        if (tags instanceof List) {
+                            zi.tags((List<String>) tags);
+                        } else {
+                            throw Lang.impossible();
+                        }
+                    }
+                    zi.lm(attrs.getAs(Date.class, "lm", zi.lm()));
+                }
             }
         });
 
@@ -168,11 +199,11 @@ public class ZDocHome {
         return this;
     }
 
-    public ZCache<ZDocHtmlCacheItem> libs() {
+    public ZCache<ZDocTmplObj> libs() {
         return libs;
     }
 
-    public ZCache<ZDocHtmlCacheItem> tmpl() {
+    public ZCache<ZDocTmplObj> tmpl() {
         return tmpl;
     }
 
@@ -184,12 +215,19 @@ public class ZDocHome {
         return rules;
     }
 
+    public ZDocRule checkRule(String rph) {
+        for (ZDocRule rule : rules)
+            if (rule.match(rph))
+                return rule;
+        throw Lang.makeThrow("Fail to found rule for '%s'", rph);
+    }
+
     public ZDocIndex index() {
         return index;
     }
 
     private void _read_index_by_native() {
-        for (ZFile topf : src.ls(true)) {
+        for (ZFile topf : src.ls(null, true)) {
             // 忽略第一层特殊的目录
             if (topIgnores.contains(topf.name()))
                 continue;
@@ -205,7 +243,7 @@ public class ZDocHome {
     private void _read_index_by_native(ZFile zf, ZDocIndex zi) {
         zi.file(zf);
         if (zf.isDir()) {
-            for (ZFile subf : ((ZDir) zf).ls(true)) {
+            for (ZFile subf : ((ZDir) zf).ls(null, true)) {
                 // 目录或者特殊的文件类型会被纳入索引
                 if (subf.isDir()
                     || subf.matchType("^zdoc|man|md|markdown|html?$")) {
@@ -252,7 +290,7 @@ public class ZDocHome {
     private void _read_rss(MultiLineProperties pp) {
         String[] ss = Strings.splitIgnoreBlank(pp.get("zdoc-rs"));
         for (String s : ss) {
-            ZDir d = src.getDir(s);
+            ZFile d = src.get(s);
             if (null != d) {
                 topIgnores.add(s);
                 rss.add(d);
@@ -296,21 +334,21 @@ public class ZDocHome {
         return pp;
     }
 
-    private void _set_cache_item(final ZCache<ZDocHtmlCacheItem> zc,
-                                 String fname) {
+    private void _set_cache_item(final ZCache<ZDocTmplObj> zc, String fname) {
         if (!Strings.isBlank(fname)) {
             topIgnores.add(fname);
-            ZDir d = src.getDir(fname);
+            final ZDir d = src.getDir(fname);
             if (null != d) {
                 d.walk(true, new ZFWalker() {
                     public boolean invoke(int i, ZFile f) {
                         if (f.isDir())
                             return true;
-                        if (!f.name().toLowerCase().matches(".*[.]html?$"))
+                        if (f.isHidden())
                             return false;
-                        ZDocHtmlCacheItem ci = new ZDocHtmlCacheItem();
-                        ci.file(f).html(Streams.readAndClose(io.readString(f)));
-                        String key = src.relative(f).replace('/', '.');
+                        ZDocTmplObj ci = new ZDocTmplObj();
+                        ci.file(f).raw(Streams.readAndClose(io.readString(f)));
+                        String rph = d.relative(f);
+                        String key = ZD.rph2key(rph);
                         zc.set(key, ci);
                         return true;
                     }

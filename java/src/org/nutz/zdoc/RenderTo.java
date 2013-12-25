@@ -17,10 +17,10 @@ public abstract class RenderTo extends ZDocHome {
     /**
      * 渲染整个 ZDoc 集合
      * 
-     * @param io
-     *            输出用的 IO
+     * @param ing
+     *            渲染时上下文
      */
-    public abstract void render(ZIO io);
+    public abstract void render(Rendering ing);
 
     protected ZDir dest;
 

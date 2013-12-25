@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import org.nutz.lang.Lang;
 import org.nutz.lang.Strings;
+import org.nutz.zdoc.Rendering;
 import org.nutz.zdoc.ZDocEle;
 import org.nutz.zdoc.ZDocEleType;
 import org.nutz.zdoc.ZDocNode;
@@ -11,38 +12,38 @@ import org.nutz.zdoc.ZDocNodeType;
 
 public class ZDocNode2Html {
 
-    void joinNode(StringBuilder sb, ZDocNode nd) {
+    void joinNode(StringBuilder sb, ZDocNode nd, Rendering ing) {
         // 标题
         if (nd.is(ZDocNodeType.HEADER)) {
-            nodeAsHeader(sb, nd);
+            nodeAsHeader(sb, nd, ing);
         }
         // 普通段落
         else if (nd.is(ZDocNodeType.PARAGRAPH)) {
-            nodeAsParagraph(sb, nd);
+            nodeAsParagraph(sb, nd, ing);
         }
         // 代码
         else if (nd.is(ZDocNodeType.CODE)) {
-            nodeAsCode(sb, nd);
+            nodeAsCode(sb, nd, ing);
         }
         // UL | OL
         else if (nd.is(ZDocNodeType.UL) || nd.is(ZDocNodeType.OL)) {
-            nodeAsList(sb, nd);
+            nodeAsList(sb, nd, ing);
         }
         // TABLE
         else if (nd.is(ZDocNodeType.TABLE)) {
-            nodeAsTable(sb, nd);
+            nodeAsTable(sb, nd, ing);
         }
         // COMMENT
         else if (nd.is(ZDocNodeType.COMMENT)) {
-            nodeAsComment(sb, nd);
+            nodeAsComment(sb, nd, ing);
         }
         // HR
         else if (nd.is(ZDocNodeType.HR)) {
-            nodeAsHr(sb, nd);
+            nodeAsHr(sb, nd, ing);
         }
         // BLOCKQUOTE
         else if (nd.is(ZDocNodeType.BLOCKQUOTE)) {
-            nodeAsBlockquote(sb, nd);
+            nodeAsBlockquote(sb, nd, ing);
         }
         // 肯定有啥错
         else {
@@ -50,95 +51,95 @@ public class ZDocNode2Html {
         }
     }
 
-    private void nodeAsHeader(StringBuilder sb, ZDocNode nd) {
-        _join_newline_of_node(sb, nd);
-        String tagName = "h" + Math.max(6, nd.depth());
+    private void nodeAsHeader(StringBuilder sb, ZDocNode nd, Rendering ing) {
+        _join_newline_of_node(sb, nd, ing);
+        String tagName = "h" + Math.min(6, nd.depth());
         sb.append("<" + tagName + ">");
         {
-            joinEles(sb, nd);
+            joinEles(sb, nd, ing);
         }
         sb.append("</" + tagName + ">");
         // 继续循环子节点
         {
             for (ZDocNode sub : nd.children()) {
-                this.joinNode(sb, sub);
+                this.joinNode(sb, sub, ing);
             }
         }
     }
 
-    private void nodeAsParagraph(StringBuilder sb, ZDocNode nd) {
-        _join_newline_of_node(sb, nd);
+    private void nodeAsParagraph(StringBuilder sb, ZDocNode nd, Rendering ing) {
+        _join_newline_of_node(sb, nd, ing);
         sb.append("<p>");
-        this.joinEles(sb, nd);
+        this.joinEles(sb, nd, ing);
     }
 
-    private void nodeAsBlockquote(StringBuilder sb, ZDocNode nd) {
-        _join_newline_of_node(sb, nd);
+    private void nodeAsBlockquote(StringBuilder sb, ZDocNode nd, Rendering ing) {
+        _join_newline_of_node(sb, nd, ing);
         sb.append("<blockquote>");
         {
-            this.joinEles(sb, nd);
+            this.joinEles(sb, nd, ing);
             for (ZDocNode sub : nd.children()) {
-                this.joinNode(sb, sub);
+                this.joinNode(sb, sub, ing);
             }
         }
-        _join_newline_of_node(sb, nd);
+        _join_newline_of_node(sb, nd, ing);
         sb.append("</blockquote>");
     }
 
-    private void nodeAsHr(StringBuilder sb, ZDocNode nd) {
-        _join_newline_of_node(sb, nd);
+    private void nodeAsHr(StringBuilder sb, ZDocNode nd, Rendering ing) {
+        _join_newline_of_node(sb, nd, ing);
         sb.append("<hr>");
     }
 
-    private void nodeAsComment(StringBuilder sb, ZDocNode nd) {
-        _join_newline_of_node(sb, nd);
+    private void nodeAsComment(StringBuilder sb, ZDocNode nd, Rendering ing) {
+        _join_newline_of_node(sb, nd, ing);
         sb.append("<!--").append(nd.text()).append("-->");
     }
 
-    private void nodeAsTable(StringBuilder sb, ZDocNode nd) {
-        _join_newline_of_node(sb, nd);
+    private void nodeAsTable(StringBuilder sb, ZDocNode nd, Rendering ing) {
+        _join_newline_of_node(sb, nd, ing);
         sb.append("<table border=\"1\" cellspacing=\"2\" cellpadding=\"4\">");
         for (ZDocNode row : nd.children()) {
-            _join_newline_of_node(sb, row);
+            _join_newline_of_node(sb, row, ing);
             sb.append(String.format("<%s>", row.type()));
             for (ZDocNode cell : row.children()) {
-                _join_newline_of_node(sb, cell);
+                _join_newline_of_node(sb, cell, ing);
                 sb.append(String.format("<%s>", cell.type()));
                 {
-                    joinEles(sb, cell);
+                    joinEles(sb, cell, ing);
                 }
-                _join_newline_of_node(sb, cell);
+                _join_newline_of_node(sb, cell, ing);
                 sb.append(String.format("</%s>", cell.type()));
             }
-            _join_newline_of_node(sb, row);
+            _join_newline_of_node(sb, row, ing);
             sb.append(String.format("</%s>", row.type()));
         }
-        _join_newline_of_node(sb, nd);
+        _join_newline_of_node(sb, nd, ing);
         sb.append("</table>");
     }
 
-    private void nodeAsList(StringBuilder sb, ZDocNode nd) {
+    private void nodeAsList(StringBuilder sb, ZDocNode nd, Rendering ing) {
         String tagName = nd.type().toString().toLowerCase();
-        _join_newline_of_node(sb, nd);
+        _join_newline_of_node(sb, nd, ing);
         sb.append(String.format("<%s>", tagName));
         // 加入 LI
         for (ZDocNode li : nd.children()) {
-            _join_newline_of_node(sb, li);
+            _join_newline_of_node(sb, li, ing);
             sb.append("<li>");
             // 加入 LI 的内容
-            joinEles(sb, li);
+            joinEles(sb, li, ing);
             // 看看是否有子节点
             for (ZDocNode child : li.children()) {
-                joinNode(sb, child);
+                joinNode(sb, child, ing);
             }
             sb.append("</li>");
         }
-        _join_newline_of_node(sb, nd);
+        _join_newline_of_node(sb, nd, ing);
         sb.append(String.format("</%s>", tagName));
     }
 
-    private void nodeAsCode(StringBuilder sb, ZDocNode nd) {
-        _join_newline_of_node(sb, nd);
+    private void nodeAsCode(StringBuilder sb, ZDocNode nd, Rendering ing) {
+        _join_newline_of_node(sb, nd, ing);
         sb.append("<pre code-type=\""
                   + nd.attrs().getString("code-type", "unknown")
                   + "\">\n");
@@ -188,6 +189,7 @@ public class ZDocNode2Html {
         if (!Strings.isBlank(ele.text())) {
             sb.append(" title=\"").append(ele.text()).append("\">");
         }
+        sb.append(">");
         // -------------------------------------------------
         if (ele.hasAttr("href")) {
             sb.append("</a>");
@@ -231,6 +233,9 @@ public class ZDocNode2Html {
         // 输出开始标签
         if (!tagNames.isEmpty()) {
             sb.append("<").append(tagNames.get(0));
+            if (ele.hasAttr("href")) {
+                sb.append(" href=\"").append(ele.href()).append("\"");
+            }
             if (sbStyle.length() > 0) {
                 sb.append(" style=\"").append(sbStyle).append("\"");
             }
@@ -250,13 +255,15 @@ public class ZDocNode2Html {
 
     }
 
-    private void joinEles(StringBuilder sb, ZDocNode nd) {
+    private void joinEles(StringBuilder sb, ZDocNode nd, Rendering ing) {
         for (ZDocEle ele : nd.eles()) {
             joinEle(sb, ele);
         }
     }
 
-    private void _join_newline_of_node(StringBuilder sb, ZDocNode nd) {
+    private void _join_newline_of_node(StringBuilder sb,
+                                       ZDocNode nd,
+                                       Rendering ing) {
         sb.append("\n").append(Strings.dup("    ", nd.depth()));
     }
 

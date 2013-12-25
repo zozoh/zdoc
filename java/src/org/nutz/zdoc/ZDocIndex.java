@@ -1,11 +1,12 @@
 package org.nutz.zdoc;
 
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.nutz.lang.Each;
 import org.nutz.lang.Strings;
-import org.nutz.lang.util.Callback2;
+import org.nutz.lang.util.Callback;
 import org.nutz.lang.util.Node;
 import org.nutz.lang.util.SimpleNode;
 import org.nutz.vfs.ZFile;
@@ -26,6 +27,14 @@ public class ZDocIndex extends SimpleNode<ZFile> {
     private ZDocNode docRoot;
 
     private String rawTex;
+
+    private List<String> tags;
+
+    private Date lm;
+
+    private String rpath;
+
+    private String bpath;
 
     public String toString() {
         return toString(0);
@@ -54,9 +63,9 @@ public class ZDocIndex extends SimpleNode<ZFile> {
      * @param walker
      *            遍历器
      */
-    public void walk(final Callback2<ZDocIndex, ZFile> walker) {
+    public void walk(final Callback<ZDocIndex> walker) {
         if (null != file())
-            walker.invoke(this, file());
+            walker.invoke(this);
 
         eachChild(new Each<ZDocIndex>() {
             public void invoke(int index, ZDocIndex zi, int length) {
@@ -141,6 +150,42 @@ public class ZDocIndex extends SimpleNode<ZFile> {
 
     public ZDocIndex docRoot(ZDocNode docRoot) {
         this.docRoot = docRoot;
+        return this;
+    }
+
+    public List<String> tags() {
+        return tags;
+    }
+
+    public ZDocIndex tags(List<String> tags) {
+        this.tags = tags;
+        return this;
+    }
+
+    public Date lm() {
+        return lm;
+    }
+
+    public ZDocIndex lm(Date lm) {
+        this.lm = lm;
+        return this;
+    }
+
+    public String rpath() {
+        return rpath;
+    }
+
+    public ZDocIndex rpath(String rpath) {
+        this.rpath = rpath;
+        return this;
+    }
+
+    public String bpath() {
+        return bpath;
+    }
+
+    public ZDocIndex bpath(String bpath) {
+        this.bpath = bpath;
         return this;
     }
 

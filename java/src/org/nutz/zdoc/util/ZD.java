@@ -101,6 +101,15 @@ public class ZD {
         return b;
     }
 
+    public static String rph2key(String rph) {
+        String key = rph.replace('/', '.');
+        int p0 = key.lastIndexOf('.');
+        int p1 = key.lastIndexOf('/');
+        if (p0 > 0 && p0 > p1)
+            key = key.substring(0, p0);
+        return key.replace('/', '.');
+    }
+
     // 禁止实例化
     private ZD() {}
 }
