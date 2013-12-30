@@ -153,7 +153,7 @@ public class ZDocHome {
                 String rph = src.relative(zf);
 
                 zi.rpath(rph);
-                zi.bpath(Strings.dup("../", zi.depth()));
+                zi.bpath(Strings.dup("../", zi.depth() - 1));
                 zi.lm(Times.D(zf.lastModified()));
 
                 // ZDoc

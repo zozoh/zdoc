@@ -233,18 +233,18 @@ public class ZDocParser implements Parser {
     private void asList(Parsing ing, ZBlock b) {
         ZDocNode listRootNode = new ZDocNode();
         ZDocNode nd = listRootNode;
-        nd.attrs().set("$line-indent", -1);
         nd.type(b.type == ZLineType.UL ? ZDocNodeType.UL : ZDocNodeType.OL);
 
         Iterator<ZLine> it = b.lines.iterator();
         ZLine line = it.next();
+        nd.attrs().set("$line-indent", line.indent);
+        nd.attrs().set("$line-type", line.type);
+
         ArrayList<ZLine> myLines = new ArrayList<ZLine>(b.lines.size());
         ZDocNode li = null;
         while (null != line) {
             // 制作一个 LI
             li = new ZDocNode().type(ZDocNodeType.LI);
-            li.attrs().set("$line-indent", line.indent);
-            li.attrs().set("$line-type", line.type);
             // 一直搜索直到遇到下一个 LI
             myLines.clear();
             myLines.add(line);
@@ -258,23 +258,18 @@ public class ZDocParser implements Parser {
             ing.fillEles(li, str);
 
             // 加入列表
-            while (!nd.isTop()
-                   && nd.attrs().getInt("$line-indent") >= line.indent) {
-                nd = nd.parent();
-            }
             li.parent(nd);
 
             // 下一行
             line = nextLine;
-            nd = li;
         }
-
-        // TODO 是否要把子 LI 用 OL 或者 UL 包裹呢？
-        // 。。。 这个在 ZDocNode 的 normalizeChildren 里做了 ...
 
         ing.current.type(listRootNode.type());
         ing.current.attrs().putAll(listRootNode.attrs());
         ing.current.takeoverChildren(listRootNode);
+
+        // 当前节点指向最后一个 li
+        ing.current = li;
     }
 
     private void asCode(Parsing ing, ZBlock b) {
@@ -305,8 +300,10 @@ public class ZDocParser implements Parser {
     private void joinTo(ZDocNode p, ZDocNode nd) {
         // 将节点加入树
         while (!p.isTop()) {
-            if (p.depth() < nd.depth()
-                && (p.is(ZDocNodeType.PARAGRAPH) || p.is(ZDocNodeType.HEADER))) {
+            if (p.getLogicDepth() < nd.depth()
+                && (p.is(ZDocNodeType.PARAGRAPH,
+                         ZDocNodeType.HEADER,
+                         ZDocNodeType.LI))) {
                 break;
             }
             p = p.parent();

@@ -1,6 +1,5 @@
 package org.nutz.zdoc;
 
-import static org.nutz.zdoc.ZDocNodeType.LI;
 import static org.nutz.zdoc.ZDocNodeType.NODE;
 import static org.nutz.zdoc.ZDocNodeType.OL;
 import static org.nutz.zdoc.ZDocNodeType.UL;
@@ -14,6 +13,7 @@ import java.util.List;
 import org.nutz.json.Json;
 import org.nutz.json.JsonFormat;
 import org.nutz.lang.Each;
+import org.nutz.lang.Lang;
 import org.nutz.lang.Strings;
 
 public class ZDocNode {
@@ -78,8 +78,11 @@ public class ZDocNode {
         return 0 == depth;
     }
 
-    public boolean is(ZDocNodeType type) {
-        return this.type == type;
+    public boolean is(ZDocNodeType... types) {
+        for (ZDocNodeType tp : types)
+            if (this.type == tp)
+                return true;
+        return false;
     }
 
     public ZDocNodeType type() {
@@ -95,8 +98,30 @@ public class ZDocNode {
         return depth;
     }
 
+    /**
+     * 一个节点的逻辑深度并不是它有多少个父节点，统计的时候，并不计算 UL 和 OL
+     * 
+     * @return 逻辑深度
+     */
+    private int logicDepth = -1;
+
+    public int getLogicDepth() {
+        if (logicDepth < 0) {
+            logicDepth = 0;
+            ZDocNode p = parent;
+            while (p != null) {
+                if (p.type != ZDocNodeType.UL && p.type != ZDocNodeType.OL) {
+                    logicDepth++;
+                }
+                p = p.parent;
+            }
+        }
+        return logicDepth;
+    }
+
     public ZDocNode depth(int depth) {
         this.depth = depth;
+        this.logicDepth = -1;
         return normalizeDepth();
     }
 
@@ -235,6 +260,23 @@ public class ZDocNode {
         return this;
     }
 
+    /**
+     * 
+     * @param types
+     *            期望的节点类型
+     * @return 第一个符合期望的父节点，如果没有，返回 null
+     */
+    public ZDocNode getParent(ZDocNodeType... types) {
+        ZDocNode re = null;
+        if (null != types && types.length > 0) {
+            re = this.parent;
+            while (re != null && !Lang.contains(types, re.type)) {
+                re = re.parent;
+            }
+        }
+        return re;
+    }
+
     public List<ZDocNode> children() {
         return children;
     }
@@ -249,28 +291,25 @@ public class ZDocNode {
             list.addAll(eles);
             eles = list;
         }
-        // 对于 LI 来说，如果有子 LI ，则用 UL|OL（根据第一个LI来决定）包裹
-        if (is(LI) && hasChildren()) {
-            ZDocNode li0 = node(0);
-            ZDocNode xL = new ZDocNode();
-            if ("OL".equalsIgnoreCase(li0.attrs().getString("$line-type", "XX"))) {
-                xL.type(OL);
-            } else {
-                xL.type(UL);
+        // 合并子节点，如果有相邻的两个 OL 或者 UL 合并
+        ArrayList<ZDocNode> list = new ArrayList<ZDocNode>(children.size());
+        ZDocNode prevChild = null;
+        for (ZDocNode child : children) {
+            if (child.isNew())
+                continue;
+            // 相邻的两个 UL | OL，合并
+            if (null != prevChild
+                && prevChild.is(OL, UL)
+                && child.type == prevChild.type) {
+                prevChild.takeoverChildren(child);
             }
-            xL.takeoverChildren(this);
-            xL.parent(this);
-        }
-        // 确保所有的子节点都是 ArrayList (可能没啥用 ...)
-        if (!(children instanceof ArrayList<?>)) {
-            ArrayList<ZDocNode> list = new ArrayList<ZDocNode>(children.size());
-            // 抛弃空节点
-            for (ZDocNode child : children) {
-                if (!child.isNew())
-                    list.add(child.normalizeChildren());
+            // 其他的计入新的列表
+            else {
+                list.add(child.normalizeChildren());
+                prevChild = child;
             }
-            children = list;
         }
+        children = list;
         return this;
     }
 

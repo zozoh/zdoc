@@ -50,10 +50,10 @@ public class ZDocParserTest extends AbstractParsingTest {
 
         _C(root, NODE, 1, "{}", "");
         _C(root, HEADER, 1, "{}", "AAA", 0);
-        _C(root, OL, 3, "{}", "", 0, 0);
+        _C(root, OL, 3, "{'$line-type':'OL','$line-indent':1}", "", 0, 0);
         _C(root, LI, 0, "{}", "L0", 0, 0, 0);
-        _C(root, LI, 0, "{}", "L1", 0, 0, 1);
-        _C(root, OL, 1, "{}", "", 0, 0, 1, 0);
+        _C(root, LI, 1, "{}", "L1", 0, 0, 1);
+        _C(root, OL, 1, "{'$line-type':'OL','$line-indent':2}", "", 0, 0, 1, 0);
         _C(root, LI, 0, "{}", "L11", 0, 0, 1, 0, 0);
         _C(root, LI, 0, "{}", "L2", 0, 0, 2);
     }
