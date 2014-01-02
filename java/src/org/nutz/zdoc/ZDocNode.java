@@ -15,6 +15,7 @@ import org.nutz.json.JsonFormat;
 import org.nutz.lang.Each;
 import org.nutz.lang.Lang;
 import org.nutz.lang.Strings;
+import org.nutz.lang.util.Callback;
 
 public class ZDocNode {
 
@@ -327,6 +328,21 @@ public class ZDocNode {
             }
         }
         return this;
+    }
+
+    /**
+     * 遍历所有的节点
+     * 
+     * @param callback
+     *            回调
+     */
+    public void walk(Callback<ZDocNode> callback) {
+        ZDocNode nd = this.firstChild;
+        while (null != nd) {
+            callback.invoke(nd);
+            nd.walk(callback);
+            nd = nd.next;
+        }
     }
 
     /**

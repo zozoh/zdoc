@@ -8,7 +8,7 @@ import org.nutz.zdoc.ZDocTemplate;
 import org.nutz.zdoc.ZDocTemplateFactory;
 
 import freemarker.template.Configuration;
-import freemarker.template.DefaultObjectWrapper;
+import freemarker.template.ObjectWrapper;
 import freemarker.template.Template;
 
 public class FreemarkerTemplateFactory implements ZDocTemplateFactory {
@@ -18,7 +18,7 @@ public class FreemarkerTemplateFactory implements ZDocTemplateFactory {
     public FreemarkerTemplateFactory(ZDocHome home) {
         FreemarkerZDocTemplateLoader loader = new FreemarkerZDocTemplateLoader(home);
         this.cfg = new Configuration();
-        this.cfg.setObjectWrapper(new DefaultObjectWrapper());
+        this.cfg.setObjectWrapper(ObjectWrapper.BEANS_WRAPPER);
         this.cfg.setTemplateLoader(loader);
     }
 

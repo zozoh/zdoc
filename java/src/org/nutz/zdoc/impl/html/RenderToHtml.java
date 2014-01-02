@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.nutz.lang.Files;
 import org.nutz.lang.Streams;
+import org.nutz.lang.Strings;
 import org.nutz.lang.util.Callback;
 import org.nutz.lang.util.NutMap;
 import org.nutz.lang.util.Tag;
@@ -15,6 +16,7 @@ import org.nutz.vfs.ZFile;
 import org.nutz.vfs.ZIO;
 import org.nutz.zdoc.RenderTo;
 import org.nutz.zdoc.Rendering;
+import org.nutz.zdoc.ZDocEle;
 import org.nutz.zdoc.ZDocIndex;
 import org.nutz.zdoc.ZDocNode;
 import org.nutz.zdoc.ZDocRule;
@@ -63,6 +65,25 @@ public class RenderToHtml extends RenderTo {
 
                 log.info(" RENDER >> " + oph);
 
+                // 将文档内所有相对链接(.zdoc|.man|.md|.markdown)都改一下扩展名
+                zi.docRoot().walk(new Callback<ZDocNode>() {
+                    public void invoke(ZDocNode nd) {
+                        for (ZDocEle ele : nd.eles()) {
+                            String href = ele.href();
+                            if (Strings.isBlank(href))
+                                continue;
+                            if (href.startsWith("http://")
+                                || href.startsWith("https://"))
+                                continue;
+                            if (href.toLowerCase()
+                                    .matches("^(.*)(.zdoc|.man|.md|.markdown)$")) {
+                                href = Files.renameSuffix(href, ".html");
+                                ele.href(href);
+                            }
+                        }
+                    }
+                });
+
                 // 创建渲染上下文
                 NutMap map = new NutMap();
                 if (null != zi.docRoot()) {
@@ -70,7 +91,8 @@ public class RenderToHtml extends RenderTo {
                         map.put(key, zi.docRoot().attrs().get(key));
                     }
                 }
-                map.put("author", zi.author());
+                map.put("author", zi.authors());
+                map.put("verifier", zi.verifiers());
                 map.put("title", zi.title());
                 map.put("tags", zi.tags());
                 map.put("lm", zi.lm());

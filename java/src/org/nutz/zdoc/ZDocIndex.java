@@ -20,7 +20,9 @@ public class ZDocIndex extends SimpleNode<ZFile> {
 
     private String title;
 
-    private String author;
+    private List<ZDocAuthor> authors;
+
+    private List<ZDocAuthor> verifiers;
 
     private String path;
 
@@ -36,6 +38,12 @@ public class ZDocIndex extends SimpleNode<ZFile> {
 
     private String bpath;
 
+    public ZDocIndex() {
+        authors = new LinkedList<ZDocAuthor>();
+        verifiers = new LinkedList<ZDocAuthor>();
+        tags = new LinkedList<String>();
+    }
+
     public String toString() {
         return toString(0);
     }
@@ -44,9 +52,8 @@ public class ZDocIndex extends SimpleNode<ZFile> {
         StringBuilder sb = new StringBuilder();
         String prefix = Strings.dup("    ", indent);
         sb.append(prefix).append(path).append(" >> ").append(file());
-        if (null != author || null != title) {
-            sb.append(prefix)
-              .append(String.format("\n[%s] @%s", title, author));
+        if (null != title) {
+            sb.append(prefix).append(String.format("\n[%s]", title));
         }
         indent++;
         for (ZDocIndex child : children()) {
@@ -86,7 +93,8 @@ public class ZDocIndex extends SimpleNode<ZFile> {
 
     public ZDocIndex clear() {
         title = null;
-        author = null;
+        authors.clear();
+        verifiers.clear();
         docRoot = null;
         rawTex = null;
         set(null).clearChildren();
@@ -108,12 +116,47 @@ public class ZDocIndex extends SimpleNode<ZFile> {
         return this;
     }
 
-    public String author() {
-        return author;
+    public List<ZDocAuthor> authors() {
+        return authors;
     }
 
     public ZDocIndex author(String author) {
-        this.author = author;
+        if (Strings.isBlank(author))
+            return this;
+        return author(new ZDocAuthor(author));
+    }
+
+    public ZDocIndex author(ZDocAuthor author) {
+        this.authors.add(author);
+        return this;
+    }
+
+    public ZDocIndex updateAuthors(List<ZDocAuthor> authors) {
+        if (null != authors && !authors.isEmpty()) {
+            this.authors = authors;
+        }
+        return this;
+    }
+
+    public List<ZDocAuthor> verifiers() {
+        return verifiers;
+    }
+
+    public ZDocIndex verifier(String verifier) {
+        if (Strings.isBlank(verifier))
+            return this;
+        return verifier(new ZDocAuthor(verifier));
+    }
+
+    public ZDocIndex verifier(ZDocAuthor verifier) {
+        this.verifiers.add(verifier);
+        return this;
+    }
+
+    public ZDocIndex updateVerifier(List<ZDocAuthor> verifiers) {
+        if (null != verifiers && !verifiers.isEmpty()) {
+            this.verifiers = verifiers;
+        }
         return this;
     }
 

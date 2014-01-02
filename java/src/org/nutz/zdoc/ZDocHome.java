@@ -180,7 +180,9 @@ public class ZDocHome {
                 // 填充索引的关键属性
                 if (null != zi.docRoot()) {
                     ZDocAttrs attrs = zi.docRoot().attrs();
-                    zi.author(attrs.getString("author", zi.author()));
+                    zi.updateAuthors(attrs.getList(ZDocAuthor.class, "author"));
+                    zi.updateVerifier(attrs.getList(ZDocAuthor.class,
+                                                    "verifier"));
                     zi.title(attrs.getString("title", zi.title()));
                     Object tags = attrs.get("tags");
                     if (null != tags) {
@@ -288,7 +290,7 @@ public class ZDocHome {
     }
 
     private void _read_rss(MultiLineProperties pp) {
-        String[] ss = Strings.splitIgnoreBlank(pp.get("zdoc-rs"));
+        String[] ss = Strings.splitIgnoreBlank(pp.get("zdoc-rs"), ",\n");
         for (String s : ss) {
             ZFile d = src.get(s);
             if (null != d) {

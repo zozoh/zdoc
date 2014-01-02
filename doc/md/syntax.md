@@ -23,20 +23,24 @@ zDoc 的语法
 
 ### zDoc 文档
     
-    #title     : 文档标题
-    #author    : zozoh
-    #属性名     : 属性值
+    #title  : 文档标题
+    #author : zozoh
+    #author : wendal
+    #tags   : [Git,编译]
     
+* 对于名称为 "author" 或者 "verifier" 的元数据，一定认其值为一个列表
+* 或者用 `[` 和 `]` 包裹的值，半角逗号分隔也表示列表
+
 ### GFM 文档
 
 _除了文档标题，均采用 HTML 注释_
     
-    文档标题
-    ====
-    <!--@@
-    #author : zozoh
-    #属性名  : 属性值
-    -->
+    ---
+    author : zozoh
+    tags   : 
+    - Git
+    - 编译
+    ---
 
 ### HTML 文档
 

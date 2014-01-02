@@ -4,6 +4,7 @@ import org.nutz.lang.Lang;
 import org.nutz.lang.Strings;
 import org.nutz.zdoc.Parsing;
 import org.nutz.zdoc.ZBlock;
+import org.nutz.zdoc.ZDocAuthor;
 import org.nutz.zdoc.ZLine;
 import org.nutz.zdoc.ZLineType;
 
@@ -22,8 +23,29 @@ public class ZDocScanner extends AbstractScanner {
             // 有值
             if (pos > 0) {
                 String key = Strings.trim(str.substring(1, pos));
+                boolean isAuthor = "author".equals(key)
+                                   || "verifier".equals(key);
                 String val = Strings.trim(str.substring(pos + 1));
-                ing.root.attrs().set(key, val);
+                // 如果值被 '[' 和 ']' 包裹，也是 List
+                if (Strings.isQuoteBy(val, '[', ']')) {
+                    String vs = val.substring(1, val.length() - 1);
+                    String[] ss = Strings.splitIgnoreBlank(vs);
+                    if (isAuthor) {
+                        for (String s : ss) {
+                            ing.root.attrs().add(key, new ZDocAuthor(s));
+                        }
+                    } else {
+                        ing.root.attrs().add(key, ss);
+                    }
+                }
+                // 对于 author ，一定是 list
+                else if (isAuthor) {
+                    ing.root.attrs().add(key, new ZDocAuthor(val));
+                }
+                // 设置普通值
+                else {
+                    ing.root.attrs().set(key, val);
+                }
             }
             // 没值
             else {
