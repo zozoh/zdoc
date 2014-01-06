@@ -79,11 +79,11 @@ _除了文档标题，均采用 HTML 注释_
     下面两段文字输出的效果是一致的
     ---------------------------------------- zdoc
     这里是段落A
-    这里还是段落A，且有一个段内换行
+    这里还是段落A，实际是与上一行是一行
     
     ---------------------------------------- GFM
     这里是段落A
-    这里还是段落A，且有一个段内换行
+    这里还是段落A，实际是与上一行是一行
     
 > 对于段落，是自动作为自己前一个标题的内容，对于 zDoc 来说会根据缩进多一些判断。判断是否是一个
 > 新标题的开始
@@ -299,27 +299,27 @@ zDoc,GFM, HTML 都支持，你只需要在任意的地方声明一个 HTML 注�
     * 普通 HTML 将会替换相应的 src,href 等属性
     * 仅仅是这样
 
-TAG           | Name | Attributes           | Example
-------------- | ---- | -------------------- | -------------------------------------------
+TAG           | Name | Attributes  | Example
+------------- | ---- | ----------- | --------------------------------
  A            | 链接  | href,target="_blank" | `<a href="http://nutzam.com">Nutzam</a>`
- A            | 锚点  | name                 | `<a name="my_anchor"></a>`
- BR           | 换行  | --                   | `<br>`
- B,I,U,EM     | 文字  | style                | `<b style="color:red">哈哈</b>`
- STRONG       | 文字  | style                | `<strong style="color:red">哈哈</strong>`
- SUB,SUP      | 文字  | style                | 脚注和尾注
- CODE         | 文字  | --                   | 相当于反引号引用的部分
+ A            | 锚点  | name    | `<a name="my_anchor"></a>`
+ BR           | 换行  | --      | `<br>`
+ B,I,U,EM     | 文字  | style   | `<b style="color:red">哈哈</b>`
+ STRONG       | 文字  | style   | `<strong style="color:red">哈哈</strong>`
+ SUB,SUP      | 文字  | style   | 脚注和尾注
+ CODE         | 文字  | --      | 相当于反引号引用的部分
  IMG          | 图片  | src,width,height,title | `<img src="abc.png">`
- P            | 段落  | align                | `<p align="left">我是一段文字`
- BLOCKQUOTE   | 引用  | --                   | `<blockquote>我是引用文字</blockquote>`
- H1-H6        | 标题  | --                   | `<h2>我是二级标题</h2>`
- OL,UL,LI     | 列表  | --                   | --
- TABLE        | 表格  | --                   | --
- COLGROUP,COL | 表格  | align                | 只有这里才能声明单元格左右对齐
- TR,THEAD     | 表格  | --                   | `THEAD` 里只能是 `TH`, `TR` 里只能是 `TD`
- TH,TD        | 表格  | --                   | --
- HR           | 水平线 | --                  | `<hr>`
- !--          | 注释  | --                   | `<!--这里随便写什么注释-->`
- PRE          | 代码  | title                | `<pre title="java">public class .. </pre>`
+ P            | 段落  | align   | `<p align="left">我是一段文字`
+ BLOCKQUOTE   | 引用  | --      | `<blockquote>我是引用文字</blockquote>`
+ H1-H6        | 标题  | --      | `<h2>我是二级标题</h2>`
+ OL,UL,LI     | 列表  | --      | --
+ TABLE        | 表格  | --      | --
+ COLGROUP,COL | 表格  | align   | 只有这里才能声明单元格左右对齐
+ TR,THEAD     | 表格  | --      | `THEAD` 里只能是 `TH`, `TR` 里只能是 `TD`
+ TH,TD        | 表格  | --      | --
+ HR           | 水平线 | --     | `<hr>`
+ !--          | 注释  | --      | `<!--这里随便写什么注释-->`
+ PRE          | 代码  | title   | `<pre title="java">public class .. </pre>`
 
     
 

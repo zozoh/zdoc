@@ -2,7 +2,6 @@ package org.nutz.zdoc.impl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.nutz.zdoc.ZLineType.BLOCKQUOTE;
 import static org.nutz.zdoc.ZLineType.HR;
@@ -12,15 +11,9 @@ import static org.nutz.zdoc.ZLineType.UL;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.nutz.zdoc.AbstractParsingTest;
 import org.nutz.zdoc.Parsing;
-import org.nutz.zdoc.ZBlock;
-import org.nutz.zdoc.ZLine;
-import org.nutz.zdoc.ZLineType;
 
-public class ZDocScannerTest extends AbstractParsingTest {
-
-    private ZDocScanner scanner;
+public class ZDocScannerTest extends AbstractScannerTest {
 
     @Before
     public void before() {
@@ -91,58 +84,6 @@ public class ZDocScannerTest extends AbstractParsingTest {
         _C(ing, 0, UL, 1, "C2", 1, UL);
 
         _C(ing, 1, OL, 0, "D", 1, OL, 'a');
-    }
-
-    private void _C(Parsing ing,
-                    int bIndex,
-                    ZLineType expectBlockType,
-                    int lIndex,
-                    String expectText,
-                    int expectIndent,
-                    ZLineType expectLineType) {
-        this._C(ing,
-                bIndex,
-                expectBlockType,
-                lIndex,
-                expectText,
-                expectIndent,
-                expectLineType,
-                (char) 0);
-    }
-
-    private void _C(Parsing ing,
-                    int bIndex,
-                    ZLineType expectBlockType,
-                    int lIndex,
-                    String expectText,
-                    int expectIndent,
-                    ZLineType expectLineType,
-                    char expectIType) {
-        ZBlock bl = ing.blocks.get(bIndex);
-
-        assertEquals(expectBlockType, bl.type);
-
-        ZLine line = bl.lines.get(lIndex);
-        assertEquals(expectIndent, line.indent);
-        if (null == expectText) {
-            assertNull(line.text);
-        } else {
-            assertEquals(expectText, line.text);
-        }
-        assertEquals(expectLineType, line.type);
-        assertEquals(expectIType, line.itype);
-    }
-
-    Parsing scan(String str) {
-        Parsing ing = ING(str);
-        scanner.scan(ing);
-        return ing;
-    }
-
-    Parsing scanf(String ph) {
-        Parsing ing = INGf(ph);
-        scanner.scan(ing);
-        return ing;
     }
 
 }
