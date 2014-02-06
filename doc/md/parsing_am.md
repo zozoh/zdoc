@@ -21,9 +21,9 @@
         {..}
     
     每个自动机都有方法
-    enter(AmStack, char):bool    # 试图进入这个自动机，如果成功将设置堆栈
-    eat(AmStack, char):AmStatus  # 消费字符
-    done(AmStack):void           # 将字符缓冲的内容填充到数据栈
+    enter(AmStack, char):AmStatus  # 试图进入这个自动机，如果成功将设置堆栈
+    eat(AmStack, char):AmStatus    # 消费字符
+    done(AmStack):void             # 将字符缓冲的内容填充到数据栈
     
     任何一个自动机每次被执行都会返回如下四个行为之一
     DROP       # 丢弃当前堆栈

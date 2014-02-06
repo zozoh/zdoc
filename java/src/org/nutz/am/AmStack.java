@@ -77,6 +77,10 @@ public abstract class AmStack<T> {
         return popObj();
     }
 
+    // 平行自动机会在这里记录自己所接受的字符，以便没有可选自动机时用作默认处理
+    public LinkedCharArray raw;
+
+    // 给自动机用的解析临时堆栈
     public LinkedCharArray buffer;
 
     protected T[] objs;
@@ -180,6 +184,7 @@ public abstract class AmStack<T> {
 
     public AmStack(int maxDepth) {
         this.maxDepth = maxDepth;
+        this.raw = new LinkedCharArray();
         this.buffer = new LinkedCharArray();
         this.qcs = new char[maxDepth];
         this.sis = new int[maxDepth];
@@ -231,6 +236,10 @@ public abstract class AmStack<T> {
         sis[i_si] = n;
     }
 
+    public int si_size() {
+        return i_si + 1;
+    }
+
     public AmStack<T> pushQc(char c) {
         qcs[++i_qc] = c;
         return this;
@@ -251,6 +260,10 @@ public abstract class AmStack<T> {
         if (i_qc >= 0)
             return qcs[i_qc] == c;
         return false;
+    }
+
+    public int qc_size() {
+        return i_qc + 1;
     }
 
     public AmStack<T> pushObj(T obj) {

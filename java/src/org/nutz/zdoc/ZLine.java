@@ -80,9 +80,9 @@ public class ZLine {
             text = text.substring(text.indexOf('.') + 2);
         }
         // HR
-        else if (trimText.matches("^[-=]{4,}$")) {
+        else if (trimText.matches("^[ *^+=-]{4,}$")) {
             type = HR;
-            text = null;
+            text = trimText;
         }
         // BLOCKQUOTE
         else if (text.startsWith("> ")) {

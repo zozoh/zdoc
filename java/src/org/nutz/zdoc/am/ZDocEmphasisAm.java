@@ -84,15 +84,11 @@ public class ZDocEmphasisAm extends ZDocAm {
             }
         }
 
-        try {
-            String text = pos > 0 ? Strings.trim(str.substring(pos)) : str;
-            o.text(text);
-            as.mergeHead(o);
-            as.buffer.clear();
-            as.popAm();
-        }
-        catch (RuntimeException e) {
-            throw e;
-        }
+        String text = pos > 0 ? Strings.trim(str.substring(pos)) : str;
+        o.text(text);
+        as.mergeHead(o);
+        as.buffer.clear();
+        as.popAm();
+
     }
 }

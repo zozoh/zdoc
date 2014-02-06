@@ -1,9 +1,14 @@
 var ioc = {
-	// 段落自动机
-	zdocParagraph : {
-		type : 'org.nutz.zdoc.am.ZDocParallelAm',
+	am : {
 		fields : {
 			name : {refer: '$Name'},
+		}
+	},
+	// 段落自动机
+	zdocParagraph : {
+		parent : "am",
+		type : 'org.nutz.zdoc.am.ZDocParallelAm',
+		fields : {
 			ams : [{
 				refer:'zdocImg'
 			},{
@@ -19,32 +24,26 @@ var ioc = {
 	},
 	// 普通文字
 	zdocText : {
+		parent : "am",
 		type   : 'org.nutz.zdoc.am.TextAm',
-		args   : ['<[{`'],
-		fields : {
-			name : {refer: '$Name'}
-		} 
+		args   : ['<[{`']
 	},
 	// 反引号
 	zdocQuote : {
+		parent : "am",
 		type   : 'org.nutz.zdoc.am.ZDocQuoteAm',
-		args   : ['`'],
-		fields : {
-			name : {refer: '$Name'}
-		} 
+		args   : ['`']
 	},
 	// 重点文字
 	zdocEm : {
-		type   : 'org.nutz.zdoc.am.ZDocEmphasisAm',
-		fields : {
-			name : {refer: '$Name'}
-		} 
+		parent : "am",
+		type   : 'org.nutz.zdoc.am.ZDocEmphasisAm'
 	},
 	// 链接
 	zdocLink : {
+		parent : "am",
 		type : 'org.nutz.zdoc.am.ZDocSeriesAm',
 		fields : {
-			name    : {refer: '$Name'},
 			theChar : '[',
 			ams : [{
 				type : 'org.nutz.zdoc.am.ZDocLinkHrefAm'
@@ -54,9 +53,9 @@ var ioc = {
 		}
 	},
 	zdocLinkContent : {
+		parent : "am",
 		type : 'org.nutz.zdoc.am.ZDocParallelAm',
 		fields : {
-			name : {refer: '$Name'},
 			theChar : ']',
 			ams : [{
 				refer:'zdocImg'
@@ -71,9 +70,9 @@ var ioc = {
 	},
 	// 图片
 	zdocImg : {
+		parent : "am",
 		type : 'org.nutz.zdoc.am.ZDocSeriesAm',
 		fields : {
-			name : {refer: '$Name'},
 			theChar : '<',
 			ams : [{
 				type : 'org.nutz.zdoc.am.ZDocImgSrcAm'

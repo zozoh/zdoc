@@ -54,7 +54,7 @@ public class ZDocScannerTest extends AbstractScannerTest {
         assertEquals(4, ing.blocks.size());
 
         _C(ing, 0, PARAGRAPH, 0, "AAA", 0, PARAGRAPH);
-        _C(ing, 1, HR, 0, null, 0, HR);
+        _C(ing, 1, HR, 0, "---------", 0, HR);
 
         _C(ing, 2, BLOCKQUOTE, 0, "BBB", 0, BLOCKQUOTE);
         _C(ing, 2, BLOCKQUOTE, 1, "CCC", 0, BLOCKQUOTE);

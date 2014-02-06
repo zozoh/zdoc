@@ -29,7 +29,7 @@ public abstract class ParallelAm<T> extends ComposAm<T> {
             // [+]... # 仅仅在当前堆栈压入自身
             // ']'... # 压入自己的退出字符
             as.pushQc(theChar).pushAm(this);
-
+            as.raw.push(c);
             return AmStatus.CONTINUE;
         }
         // 否则就表示本自动机遇到意外字符，必须 drop
@@ -54,7 +54,7 @@ public abstract class ParallelAm<T> extends ComposAm<T> {
         for (Am<T> am : ams) {
             if (AmStatus.DROP != am.enter(stack, c)) {
                 as.addCandidate(stack);
-                stack = as.born().pushObj(as.bornObj()).pushQc(theChar);
+                stack = as.born().pushQc(theChar);
             }
         }
     }
@@ -70,19 +70,24 @@ public abstract class ParallelAm<T> extends ComposAm<T> {
             this.selectCandidates(as, c);
 
             // 如果有候选就返回继续
-            if (as.hasCandidates())
+            if (as.hasCandidates()) {
+                as.raw.push(c);
                 return AmStatus.CONTINUE;
+            }
 
             return AmStatus.DROP;
         }
 
+        // 记录自己接受的字符
+        as.raw.push(c);
+
+        // 依次处理所有的候选堆栈
         T o;
         List<AmStack<T>> dels = new ArrayList<AmStack<T>>(as.candidates.size());
         for (AmStack<T> stack : as.candidates) {
             AmStatus st = stack.eat(c);
             switch (st) {
             case DROP:
-                // as.candidates.remove(stack);
                 dels.add(stack);
                 break;
             case CONTINUE:
@@ -118,8 +123,10 @@ public abstract class ParallelAm<T> extends ComposAm<T> {
         if (as.hasCandidates())
             return AmStatus.CONTINUE;
 
-        return AmStatus.DROP;
+        return whenNoCandidate(as);
     }
+
+    abstract protected AmStatus whenNoCandidate(AmStack<T> as);
 
     @Override
     public void done(AmStack<T> as) {
@@ -140,7 +147,6 @@ public abstract class ParallelAm<T> extends ComposAm<T> {
             AmStack<T> stack = as.candidates.get(0);
             T o = stack.close();
             as.mergeHead(o);
-            as.pushQc(stack.popQc());
             as.candidates.clear();
 
             // 执行堆栈的真正弹出
@@ -149,7 +155,6 @@ public abstract class ParallelAm<T> extends ComposAm<T> {
             // [] ... # 清除了自动机
             // ...... # 清除了退出字符
             as.popAm();
-            as.popQc();
         }
 
     }

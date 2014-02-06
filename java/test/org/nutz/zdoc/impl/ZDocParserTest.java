@@ -46,7 +46,7 @@ public class ZDocParserTest extends AbstractParsingTest {
 
         ZDocNode root = PS(s);
 
-        System.out.println(root.printAll());
+        // System.out.println(root.printAll());
 
         _C(root, NODE, 1, "{}", "");
         _C(root, HEADER, 1, "{}", "AAA", 0);

@@ -84,6 +84,11 @@ public class ZDocEle {
      * @return 自身
      */
     public ZDocEle normalize() {
+        // 确保自己的类型有意义
+        if (ZDocEleType.NEW == this.type) {
+            this.type = hasAttr("src") ? ZDocEleType.IMG : ZDocEleType.INLINE;
+        }
+        // 向下与自己的唯一 child 合并
         if (children.size() == 1) {
             ZDocEle child = children.remove(0);
             child.normalize();
@@ -92,7 +97,9 @@ public class ZDocEle {
                 this.type = child.type;
             this.text = Strings.sBlank(child.text(), this.text);
             this.children().addAll(child.children);
-        } else if (!children.isEmpty()) {
+        }
+        // 整理自己所有的 child
+        else if (!children.isEmpty()) {
             for (ZDocEle child : children) {
                 child.normalize();
             }
@@ -163,6 +170,14 @@ public class ZDocEle {
 
     public ZDocEle src(String src) {
         return attr("src", src);
+    }
+
+    public String title() {
+        return attrString("title");
+    }
+
+    public ZDocEle title(String title) {
+        return attr("title", title);
     }
 
     public int width() {

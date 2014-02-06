@@ -5,10 +5,16 @@ import static org.nutz.zdoc.ZLineType.CODE;
 import static org.nutz.zdoc.ZLineType.PARAGRAPH;
 import static org.nutz.zdoc.ZLineType.TABLE;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.nutz.zdoc.Parsing;
 
 public class MarkdownScannerTest extends AbstractScannerTest {
+    
+    @Before
+    public void before() {
+        scanner = new MarkdownScanner();
+    }
 
     @Test
     public void test_simple_scan() {

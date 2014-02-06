@@ -27,6 +27,11 @@ public class TextAm extends ZDocAm {
 
     @Override
     public AmStatus eat(AmStack<ZDocEle> as, char c) {
+        // 如果 buffer 最后一个字符为转义字符 '\'
+        if (as.buffer.last() == '\\') {
+            as.buffer.push(c);
+            return CONTINUE;
+        }
         if (Nums.isin(stopcs, c))
             return DONE_BACK;
         as.buffer.push(c);
@@ -36,7 +41,9 @@ public class TextAm extends ZDocAm {
     @Override
     public void done(AmStack<ZDocEle> as) {
         ZDocEle o = as.popObj().type(ZDocEleType.INLINE);
-        o.text(as.buffer.toString());
+        String str = as.buffer.toString();
+        // 执行转义 ...
+        o.text(str.replaceAll("(\\\\)(.)", "$2"));
         as.mergeHead(o);
         as.buffer.clear();
         as.popAm();
