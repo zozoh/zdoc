@@ -53,7 +53,8 @@ public class ZDocNode2Html {
 
     private void nodeAsHeader(StringBuilder sb, ZDocNode nd, Rendering ing) {
         _join_newline_of_node(sb, nd, ing);
-        String tagName = "h" + Math.min(6, nd.depth());
+        String tagName = nd.attrs().getString("tagName",
+                                              "h" + Math.min(6, nd.depth()));
         sb.append("<" + tagName + ">");
         {
             joinEles(sb, nd, ing);

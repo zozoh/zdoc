@@ -1,14 +1,13 @@
 package org.nutz.zdoc.am;
 
 import static org.junit.Assert.assertEquals;
-import static org.nutz.zdoc.ZDocEleType.INLINE;
-import static org.nutz.zdoc.ZDocEleType.QUOTE;
+import static org.nutz.zdoc.ZDocEleType.*;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.nutz.zdoc.ZDocEle;
 
-public class MarkdownAmTest extends AmTest {
+public class MdAmTest extends AmTest {
 
     @Before
     public void before() {
@@ -17,8 +16,82 @@ public class MarkdownAmTest extends AmTest {
     }
     
     @Test
+    public void test_paragraph(){
+        ZDocEle root;
+        // ...................................................
+        root = _parse("X![A][]Y");
+        root.normalize();
+        assertEquals(3, root.children().size());
+
+        _Cele(root, 0, INLINE, "X", null);
+        _Cele(root, 1, IMG, "A", "$a");
+        _Cele(root, 2, INLINE, "Y", null);
+    }
+
+    @Test
+    public void test_img_byid() {
+        ZDocEle root;
+        // ...................................................
+        root = _parse("![A][]");
+        root.normalize();
+        assertEquals(0, root.children().size());
+
+        _Cele(root, -1, IMG, "A", "$a");
+        // ...................................................
+        root = _parse("![A]  [id]");
+        root.normalize();
+        assertEquals(2, root.children().size());
+
+        _Cele(root, 0, INLINE, "![A]  ", null);
+        _Cele(root, 1, INLINE, "[id]", null);
+        // ...................................................
+        root = _parse("![A] [id]");
+        root.normalize();
+        assertEquals(0, root.children().size());
+
+        _Cele(root, -1, IMG, "A", "$id");
+        // ...................................................
+        root = _parse("![A][id]");
+        root.normalize();
+        assertEquals(0, root.children().size());
+
+        _Cele(root, -1, IMG, "A", "$id");
+    }
+
+    @Test
+    public void test_img_normal() {
+        ZDocEle root;
+        // ...................................................
+        root = _parse("![A]  (L)");
+        root.normalize();
+        assertEquals(2, root.children().size());
+
+        _Cele(root, 0, INLINE, "![A]  ", null);
+        _Cele(root, 1, INLINE, "(L)", null);
+        // ...................................................
+        root = _parse("![A](a.png)");
+        root.normalize();
+        assertEquals(0, root.children().size());
+
+        _Cele(root, -1, IMG, "A", "a.png");
+        // ...................................................
+        root = _parse("[A] (a.png 'abc')");
+        root.normalize();
+        assertEquals(0, root.children().size());
+
+        _Cele(root, -1, INLINE, "A", "a.png");
+        assertEquals("abc", root.title());
+    }
+
+    @Test
     public void test_link_byid() {
         ZDocEle root;
+        // ...................................................
+        root = _parse("[A][]");
+        root.normalize();
+        assertEquals(0, root.children().size());
+
+        _Cele(root, -1, INLINE, "A", "$a");
         // ...................................................
         root = _parse("[A]  [id]");
         root.normalize();
@@ -39,7 +112,6 @@ public class MarkdownAmTest extends AmTest {
 
         _Cele(root, -1, INLINE, "A", "$id");
     }
-    
 
     @Test
     public void test_link_normal() {

@@ -43,8 +43,8 @@ public class ZDocScannerTest extends AbstractScannerTest {
         Parsing ing = scan(s);
 
         assertEquals(2, ing.blocks.size());
-        assertEquals("A", ing.blocks.get(0).firstLine.text);
-        assertEquals("B", ing.blocks.get(1).firstLine.text);
+        assertEquals("A", ing.blocks.get(0).firstLine.text());
+        assertEquals("B", ing.blocks.get(1).firstLine.text());
     }
 
     @Test

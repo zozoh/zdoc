@@ -146,7 +146,8 @@ public class ZDocNode {
     }
 
     public ZDocNode addEles(Collection<? extends ZDocEle> eles) {
-        this.eles.addAll(eles);
+        for (ZDocEle ele : eles)
+            addEle(ele);
         return this;
     }
 

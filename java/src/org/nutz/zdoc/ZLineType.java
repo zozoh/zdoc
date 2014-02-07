@@ -11,7 +11,10 @@ public enum ZLineType {
     // HR
     HR,
 
-    // 文字块
-    PARAGRAPH, BLOCKQUOTE, BLANK,
+    // 段落&标题
+    PARAGRAPH, BLOCKQUOTE, HEADER,
+
+    // 空行
+    BLANK
 
 }

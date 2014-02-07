@@ -59,13 +59,13 @@ public class ZBlock {
         Iterator<ZLine> it = lines.iterator();
         StringBuilder sb = new StringBuilder();
         ZLine line = it.next();
-        sb.append(line.text);
+        sb.append(line.text());
         while (it.hasNext()) {
             line = it.next();
             if (line.type == ZLineType.BLANK)
                 break;
             line.alignText(indent);
-            sb.append('\n').append(line.text);
+            sb.append('\n').append(line.text());
         }
         return sb.toString();
     }
@@ -124,7 +124,7 @@ public class ZBlock {
         ZLine line = new ZLine();
         line.indent = indent;
         line.type = ZLineType.PARAGRAPH;
-        line.text = text;
+        line.text(text);
         this.lines.clear();
         this.firstLine = line;
         this._add(line);

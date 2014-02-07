@@ -6,13 +6,12 @@ import org.nutz.lang.Lang;
 import org.nutz.lang.Streams;
 import org.nutz.zdoc.Parsing;
 import org.nutz.zdoc.ZLine;
-import org.nutz.zdoc.ZLineType;
 
 public abstract class AbstractScanner {
 
     protected abstract void scanWithException(Parsing ing) throws Exception;
 
-    protected abstract ZLineType evalLineType(ZLine line);
+    protected abstract ZLine evalLineType(Parsing ing, ZLine line);
 
     // 这里封装了行的连接逻辑
     protected String _read_line(Parsing ing) throws IOException {

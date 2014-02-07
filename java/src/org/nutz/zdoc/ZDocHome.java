@@ -24,6 +24,7 @@ import org.nutz.vfs.ZDir;
 import org.nutz.vfs.ZFWalker;
 import org.nutz.vfs.ZFile;
 import org.nutz.vfs.ZIO;
+import org.nutz.zdoc.impl.MdParser;
 import org.nutz.zdoc.impl.ZDocParser;
 import org.nutz.zdoc.util.ZD;
 import org.w3c.dom.Document;
@@ -141,7 +142,9 @@ public class ZDocHome {
 
         // 准备解析器
         final Parser paZDoc = new ZDocParser();
+        final Parser paMd = new MdParser();
         final AmFactory fa_zdoc = new AmFactory("org/nutz/zdoc/am/zdoc.js");
+        final AmFactory fa_md = new AmFactory("org/nutz/zdoc/am/markdown.js");
 
         // 开始遍历，解析每个文件
         index.walk(new Callback<ZDocIndex>() {
@@ -162,13 +165,15 @@ public class ZDocHome {
                     Parsing ing = new Parsing(io.readString(zf));
                     ing.fa = fa_zdoc;
                     paZDoc.build(ing);
-                    ing.root.normalizeChildren();
                     zi.docRoot(ing.root).rawTex(ing.raw);
                 }
                 // Markdown
                 else if (zf.matchType("^md|markdown$")) {
                     log.infof("md: %s", rph);
-                    throw Lang.noImplement();
+                    Parsing ing = new Parsing(io.readString(zf));
+                    ing.fa = fa_md;
+                    paMd.build(ing);
+                    zi.docRoot(ing.root).rawTex(ing.raw);
                 }
                 // HTML
                 else if (zf.matchType("^html?$")) {

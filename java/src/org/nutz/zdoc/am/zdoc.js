@@ -14,8 +14,6 @@ var ioc = {
 			},{
 				refer:'zdocLink'
 			},{
-				refer:'zdocText'
-			},{
 				refer:'zdocQuote'
 			},{
 				refer:'zdocEm'
@@ -59,8 +57,6 @@ var ioc = {
 			theChar : ']',
 			ams : [{
 				refer:'zdocImg'
-			},{
-				refer:'zdocText'
 			},{
 				refer:'zdocQuote'
 			},{

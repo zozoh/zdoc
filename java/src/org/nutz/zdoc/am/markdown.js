@@ -10,6 +10,10 @@ var ioc = {
 		type   : 'org.nutz.zdoc.am.ZDocParallelAm',
 		fields : {
 			ams : [{
+				refer:'mdImg'
+			},{
+				refer:'mdImgById'
+			},{
 				refer:'mdLink'
 			},{
 				refer:'mdLinkById'
@@ -23,8 +27,47 @@ var ioc = {
 				refer:'mdEm_'
 			},{
 				refer:'mdEm_2'
+			}]
+		}
+	},
+	// 图片
+	mdImg : {
+		parent : "am",
+		type   : 'org.nutz.zdoc.am.ZDocSeriesAm',
+		fields : {
+			theChar : '!',
+			ams : [{
+				type : 'org.nutz.zdoc.am.OneCharAm',
+				args : ['[']
 			},{
-				refer:'mdText'
+				type : 'org.nutz.zdoc.am.MdLinkTextAm'
+			},{
+				type : 'org.nutz.zdoc.am.MdLinkSepAm'
+			},{
+				type : 'org.nutz.zdoc.am.MdLinkInfoAm',
+				args : ['src']
+			},{
+				type : 'org.nutz.zdoc.am.MdImgDoneAm'
+			}]
+		}
+	},
+	mdImgById : {
+		parent : "am",
+		type   : 'org.nutz.zdoc.am.ZDocSeriesAm',
+		fields : {
+			theChar : '!',
+			ams : [{
+				type : 'org.nutz.zdoc.am.OneCharAm',
+				args : ['[']
+			},{
+				type : 'org.nutz.zdoc.am.MdLinkTextAm'
+			},{
+				type : 'org.nutz.zdoc.am.MdLinkSepAm'
+			},{
+				type : 'org.nutz.zdoc.am.MdLinkIdAm',
+				args : ['src']
+			},{
+				type : 'org.nutz.zdoc.am.MdImgDoneAm'
 			}]
 		}
 	},

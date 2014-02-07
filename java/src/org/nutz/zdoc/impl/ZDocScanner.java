@@ -1,5 +1,10 @@
 package org.nutz.zdoc.impl;
 
+import static org.nutz.zdoc.ZLineType.*;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.nutz.lang.Lang;
 import org.nutz.lang.Strings;
 import org.nutz.zdoc.Parsing;
@@ -58,8 +63,8 @@ public class ZDocScanner extends AbstractScanner {
 
         // 开始循环读取行
         ZBlock block = new ZBlock();
-        ZLine line = new ZLine(str);
-        ZLineType lntp = evalLineType(line);
+        ZLine line = evalLineType(new ZLine(str).evalIndent());
+        ZLineType lntp = line.type;
         while (null != str) {
             // ...........................................
             // 加入之前的块
@@ -74,13 +79,12 @@ public class ZDocScanner extends AbstractScanner {
                 block.indent = line.indent;
                 block._add(line);
                 while (null != (str = _read_line(ing))) {
-                    line = new ZLine(str);
-                    lntp = evalLineType(line);
-                    if (ZLineType.TABLE != lntp)
+                    line = evalLineType(new ZLine(str).evalIndent());
+                    if (ZLineType.TABLE != line.type)
                         break;
                     block._add(line);
                 }
-                if (ZLineType.TABLE != lntp)
+                if (ZLineType.TABLE != line.type)
                     continue;
             }
             // ...........................................
@@ -98,10 +102,12 @@ public class ZDocScanner extends AbstractScanner {
                     }
                 }
                 while (null != (str = _read_line(ing))) {
-                    line = new ZLine(str);
+                    line = new ZLine(str).evalIndent()
+                                         .type(ZLineType.CODE)
+                                         .compensateSpace();
                     if (line.trimmed().equals("}}}"))
                         break;
-                    block._add(line);
+                    block._add(line.alignText(block.indent));
                 }
             }
             // ...........................................
@@ -109,16 +115,21 @@ public class ZDocScanner extends AbstractScanner {
             else if (ZLineType.COMMENT == lntp) {
                 block.type = lntp;
                 block.indent = line.indent;
-                line.text = line.text.substring("<!--".length());
+                String txt = line.text();
+                line.text(txt.substring("<!--".length()));
                 block._add(line);
                 while (null != (str = _read_line(ing))) {
-                    line = new ZLine(str);
-                    if (line.trimmed().endsWith("-->")) {
-                        line.text = line.text.substring(0, line.text.length()
-                                                           - "-->".length());
+                    line = evalLineType(new ZLine(str).evalIndent()
+                                                      .type(COMMENT)
+                                                      .alignText(block.indent));
+                    // 结束行
+                    int pos = line.text().lastIndexOf("-->");
+                    if (pos >= 0) {
+                        line.text(txt.substring(0, pos));
                         block._add(line);
                         break;
                     }
+                    // 同志们，那么就直接加吧
                     block._add(line);
                 }
             }
@@ -129,8 +140,8 @@ public class ZDocScanner extends AbstractScanner {
                 block.indent = line.indent;
                 block._add(line);
                 while (null != (str = _read_line(ing))) {
-                    line = new ZLine(str);
-                    lntp = evalLineType(line);
+                    line = evalLineType(new ZLine(str).evalIndent());
+                    lntp = line.type;
                     if (ZLineType.BLANK == lntp
                         || (lntp == block.type && line.indent == block.indent)) {
                         block._add(line);
@@ -147,8 +158,8 @@ public class ZDocScanner extends AbstractScanner {
                 block.indent = line.indent;
                 block._add(line);
                 while (null != (str = _read_line(ing))) {
-                    line = new ZLine(str);
-                    lntp = evalLineType(line);
+                    line = evalLineType(new ZLine(str).evalIndent());
+                    lntp = line.type;
                     if (lntp == block.type || lntp == ZLineType.PARAGRAPH) {
                         block._add(line);
                     } else {
@@ -176,8 +187,8 @@ public class ZDocScanner extends AbstractScanner {
                 block.indent = line.indent;
                 block._add(line);
                 while (null != (str = _read_line(ing))) {
-                    line = new ZLine(str);
-                    lntp = evalLineType(line);
+                    line = evalLineType(new ZLine(str).evalIndent());
+                    lntp = line.type;
                     if (lntp == block.type && line.indent == block.indent) {
                         block._add(line);
                     } else {
@@ -194,8 +205,8 @@ public class ZDocScanner extends AbstractScanner {
 
             // 再读一行
             str = this._read_line(ing);
-            line = new ZLine(str);
-            lntp = evalLineType(line);
+            line = evalLineType(new ZLine(str).evalIndent());
+            lntp = line.type;
         }
 
         // 最后一块
@@ -203,17 +214,76 @@ public class ZDocScanner extends AbstractScanner {
             ing.blocks.add(block.fixLines());
     }
 
+    private ZLine evalLineType(ZLine line) {
+        return evalLineType(null, line);
+    }
+
     @Override
-    protected ZLineType evalLineType(ZLine line) {
-        if (line.trimmed().startsWith("{{{"))
-            return ZLineType.CODE;
-        if (Strings.isQuoteBy(line.trimmed(), "||", "||"))
-            return ZLineType.TABLE;
-        if (line.trimmed().startsWith("<!--"))
-            return ZLineType.COMMENT;
-        if (line.trimLower().equals("<html>"))
-            return ZLineType.HTML;
-        return line.type;
+    protected ZLine evalLineType(Parsing ing, ZLine line) {
+
+        String tmd = line.trimmed();
+        // BLANK
+        if (Strings.isEmpty(tmd)) {
+            line.text("");
+            line.type = BLANK;
+        }
+        // UL
+        else if (tmd.startsWith("* ")) {
+            line.type = UL;
+            line.text(tmd.substring(2));
+        }
+        // OL
+        else if (tmd.startsWith("# ")) {
+            line.itype = '#';
+            line.type = OL;
+            line.text(tmd.substring(2));
+        }
+        // OL，用数字或者字母作为标识
+        else if (tmd.matches("^[0-9a-zA-Z]+[.][ ].+$")) {
+            line.itype = tmd.charAt(0);
+            line.type = OL;
+            line.text(tmd.substring(tmd.indexOf('.') + 2));
+        }
+        // CODE
+        else if (tmd.startsWith("{{{")) {
+            line.type = CODE;
+        }
+        // TABLE
+        else if (Strings.isQuoteBy(tmd, "||", "||")) {
+            line.type = TABLE;
+        }
+        // COMMENT
+        else if (tmd.startsWith("<!--")) {
+            line.type = COMMENT;
+        }
+        // HTML
+        else if (tmd.equalsIgnoreCase("<html>")) {
+            line.type = HTML;
+        }
+        // HR
+        else if (tmd.matches("^[=-]{4,}$")) {
+            line.type = HR;
+            line.text(tmd);
+        }
+        // BLOCKQUOTE
+        else if (tmd.startsWith("> ")) {
+            line.type = BLOCKQUOTE;
+            Matcher m = Pattern.compile("^((>[ \t]+)+)(.*)$").matcher(tmd);
+            if (m.find()) {
+                line.blockLevel = m.group(1).replaceAll("[ \t]", "").length();
+                line.text(m.group(3));
+            } else {
+                throw Lang.impossible();
+            }
+        }
+        // PARAGRAPH
+        else {
+            line.type = PARAGRAPH;
+            line.compensateSpace();
+        }
+
+        // 返回输入以便链式赋值
+        return line;
     }
 
 }

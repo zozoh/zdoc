@@ -21,14 +21,14 @@ import org.nutz.zdoc.ZLine;
 import org.nutz.zdoc.ZLineType;
 import org.nutz.zdoc.util.ZD;
 
-public class ZDocParser implements Parser {
+public class MdParser implements Parser {
 
     private static final Log log = Logs.get();
 
-    private ZDocScanner scanner;
+    private MdScanner scanner;
 
-    public ZDocParser() {
-        scanner = new ZDocScanner();
+    public MdParser() {
+        scanner = new MdScanner();
     }
 
     @Override
@@ -51,9 +51,13 @@ public class ZDocParser implements Parser {
                 makeNode(ing, b);
 
                 // 根据块的不同类型，进行解析
-                // <HTML> 的行要一直寻找到 </HTML> 行
-                if (ZLineType.HTML == b.type) {
-                    throw Lang.impossible();
+                // 普通段落
+                if (ZLineType.PARAGRAPH == b.type) {
+                    asParagraph(ing, b);
+                }
+                // 标题
+                else if (ZLineType.HEADER == b.type) {
+                    asHeader(ing, b);
                 }
                 // 代码
                 else if (ZLineType.CODE == b.type) {
@@ -62,6 +66,10 @@ public class ZDocParser implements Parser {
                 // UL | OL
                 else if (ZLineType.UL == b.type || ZLineType.OL == b.type) {
                     asList(ing, b);
+                }
+                // <HTML> 的行要一直寻找到 </HTML> 行
+                else if (ZLineType.HTML == b.type) {
+                    throw Lang.impossible();
                 }
                 // TABLE
                 else if (ZLineType.TABLE == b.type) {
@@ -79,10 +87,7 @@ public class ZDocParser implements Parser {
                 else if (ZLineType.BLOCKQUOTE == b.type) {
                     asBlockquote(ing, b);
                 }
-                // 普通段落
-                else if (ZLineType.PARAGRAPH == b.type) {
-                    asParagraph(ing, b);
-                }
+
                 // 肯定有啥错
                 else {
                     throw Lang.impossible();
@@ -96,6 +101,12 @@ public class ZDocParser implements Parser {
         }
 
         ing.root.normalizeChildren();
+    }
+
+    private void asHeader(Parsing ing, ZBlock b) {
+        ing.current.type(ZDocNodeType.HEADER);
+        ing.current.attrs().set("tagName", "h" + b.firstLine.blockLevel);
+        ing.fillCurrentEles(b.joinLines());
     }
 
     private void asParagraph(Parsing ing, ZBlock b) {
@@ -264,6 +275,7 @@ public class ZDocParser implements Parser {
             line = nextLine;
         }
 
+        // 将列表块复制到当前节点
         ing.current.type(listRootNode.type());
         ing.current.attrs().putAll(listRootNode.attrs());
         ing.current.takeoverChildren(listRootNode);
@@ -279,38 +291,29 @@ public class ZDocParser implements Parser {
     }
 
     private ZDocNode makeNode(Parsing ing, ZBlock b) {
-        return makeNode(ing, b.indent + 1);
-    }
-
-    private ZDocNode makeNode(Parsing ing, int depth) {
         // 建立一个对应的节点
         ZDocNode nd = new ZDocNode();
-        nd.depth(depth);
 
-        joinTo(ing.current, nd);
+        // 得到最近一个标题
+        ZDocNode p = ing.current;
+        while (!p.isTop() && ZDocNodeType.HEADER != p.type())
+            p = p.parent();
 
-        // 作为当前节点
+        // 标题节点，则试图寻找一下层级
+        if (ZLineType.HEADER == b.type) {
+            while (p.depth() >= b.firstLine.blockLevel) {
+                p = p.parent();
+            }
+        }
+
+        // 将当前节点加入文档层级中
+        nd.parent(p);
+
+        // 标记节点为当前节点
         ing.current = nd;
 
         // 返回
         return ing.current;
     }
 
-    private void joinTo(ZDocNode p, ZDocNode nd) {
-        // 将节点加入树
-        while (!p.isTop()) {
-            if (p.getLogicDepth() < nd.depth()
-                && (p.is(ZDocNodeType.PARAGRAPH,
-                         ZDocNodeType.HEADER,
-                         ZDocNodeType.LI))) {
-                break;
-            }
-            p = p.parent();
-        }
-        nd.parent(p);
-
-        // 那么如果父节点是普通段落，就一定是标题（这话说的有点绕 -_-!)
-        if (!p.isTop() && p.is(ZDocNodeType.PARAGRAPH))
-            p.type(ZDocNodeType.HEADER);
-    }
 }

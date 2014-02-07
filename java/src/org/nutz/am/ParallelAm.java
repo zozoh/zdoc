@@ -10,6 +10,15 @@ import java.util.List;
  */
 public abstract class ParallelAm<T> extends ComposAm<T> {
 
+    /**
+     * 是否为受限的平行自动机
+     * <ul>
+     * <li>如果为 true，必须有一个子机接受了字符才可进入
+     * <li>否则，任何字符都是可入的，将会依靠 as.raw 字段继续消费字符
+     * </ul>
+     */
+    private boolean limited;
+
     @Override
     public AmStatus enter(AmStack<T> as, char c) {
         // 如果用退出字符进入，直接返回完成
@@ -23,11 +32,21 @@ public abstract class ParallelAm<T> extends ComposAm<T> {
 
         // 选择完了候选堆栈，如果有，那么就表示可以继续消费字符
         if (as.hasCandidates()) {
+            // 处理之前积累下来的字符
+            whenNoCandidate(as);
+
             // 那么就会将自身压入母堆栈，同时也要在母堆栈标识退出字符
             // []
             // [] ...
             // [+]... # 仅仅在当前堆栈压入自身
             // ']'... # 压入自己的退出字符
+            as.pushQc(theChar).pushAm(this);
+            as.raw.push(c);
+            return AmStatus.CONTINUE;
+        }
+        // 没有退出字符的平行自动机，即使没有候选堆栈，也可以接受任何字符
+        // 待遇到了生成候选堆栈的字符，之前接受的字符(as.raw)则会被子类虚函数处理
+        if (!limited) {
             as.pushQc(theChar).pushAm(this);
             as.raw.push(c);
             return AmStatus.CONTINUE;
@@ -67,10 +86,26 @@ public abstract class ParallelAm<T> extends ComposAm<T> {
                 return AmStatus.DONE;
             }
 
+            // 如果是转移字符，不需要选择候选堆栈
+            if (as.raw.last() == '\\') {
+                as.raw.push(c);
+                return AmStatus.CONTINUE;
+            }
+
+            // 试图看看有木有子机可以进入 ...
             this.selectCandidates(as, c);
 
             // 如果有候选就返回继续
             if (as.hasCandidates()) {
+                // 处理之前积累下来的字符
+                whenNoCandidate(as);
+
+                // 继续处理
+                as.raw.push(c);
+                return AmStatus.CONTINUE;
+            }
+
+            if (!limited) {
                 as.raw.push(c);
                 return AmStatus.CONTINUE;
             }
@@ -96,11 +131,13 @@ public abstract class ParallelAm<T> extends ComposAm<T> {
                 o = stack.close();
                 as.mergeHead(o);
                 as.candidates.clear();
+                as.raw.clear();
                 return st;
             case DONE_BACK:
                 o = stack.close();
                 as.mergeHead(o);
                 as.candidates.clear();
+                as.raw.clear();
                 // 判断是不是退出字符
                 if (theChar == c) {
                     return AmStatus.DONE;
@@ -143,7 +180,7 @@ public abstract class ParallelAm<T> extends ComposAm<T> {
         // [] ... # 这个是自己的对象
         // [+] ... # 头部就只有自己
         // ']' ... # 自己的退出字符在顶部
-        if (as.hasCandidates()) {
+        if (as.hasWinner()) {
             AmStack<T> stack = as.candidates.get(0);
             T o = stack.close();
             as.mergeHead(o);
@@ -155,6 +192,10 @@ public abstract class ParallelAm<T> extends ComposAm<T> {
             // [] ... # 清除了自动机
             // ...... # 清除了退出字符
             as.popAm();
+        }
+        // 没有候选的话 ...
+        else {
+            whenNoCandidate(as);
         }
 
     }

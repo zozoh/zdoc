@@ -10,11 +10,14 @@ public class ZDocParallelAm extends ParallelAm<ZDocEle> {
 
     @Override
     protected AmStatus whenNoCandidate(AmStack<ZDocEle> as) {
-        ZDocEle o = new ZDocEle().type(ZDocEleType.INLINE);
-        o.text(as.raw.toString());
-        as.mergeHead(o);
-        as.raw.clear();
-
+        if (!as.raw.isEmpty()) {
+            ZDocEle o = new ZDocEle().type(ZDocEleType.INLINE);
+            String str = as.raw.toString();
+            as.raw.clear();
+            // 执行转义 ...
+            o.text(str.replaceAll("(\\\\)(.)", "$2"));
+            as.mergeHead(o);
+        }
         return AmStatus.DONE;
     }
 }

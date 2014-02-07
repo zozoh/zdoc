@@ -45,9 +45,9 @@ public class AbstractScannerTest extends AbstractParsingTest {
         ZLine line = bl.lines.get(lIndex);
         assertEquals(expectIndent, line.indent);
         if (null == expectText) {
-            assertNull(line.text);
+            assertNull(line.text());
         } else {
-            assertEquals(expectText, line.text);
+            assertEquals(expectText, line.text());
         }
         assertEquals(expectLineType, line.type);
         assertEquals(expectIType, line.itype);

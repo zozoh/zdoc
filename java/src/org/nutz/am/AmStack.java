@@ -105,14 +105,19 @@ public abstract class AmStack<T> {
         StringBuilder sb = new StringBuilder();
         String inds = Strings.dup("    ", indent);
 
+        // raw
+        sb.append(inds).append("Raw: |");
+        for (int i = 0; i < raw.size(); i++)
+            sb.append(raw.get(i));
+        sb.append("|< ").append('\n');
         // 字符串缓冲
-        sb.append(inds).append("C: '");
+        sb.append(inds).append("Buf: |");
         for (int i = 0; i < buffer.size(); i++)
             sb.append(buffer.get(i));
-        sb.append("' < ").append('\n');
+        sb.append("|< ").append('\n');
 
         // 对象
-        sb.append(inds).append("T:");
+        sb.append(inds).append("Obj:");
         for (int i = i_obj; i >= 0; i--) {
             sb.append('[');
             sb.append(objBrief(objs[i]));
@@ -121,7 +126,7 @@ public abstract class AmStack<T> {
         sb.append(" < ").append('\n');
 
         // 操作栈
-        sb.append(inds).append("@:");
+        sb.append(inds).append("Ams:");
         for (int i = i_am; i >= 0; i--) {
             sb.append('[');
             sb.append(ams[i].name());
@@ -130,7 +135,7 @@ public abstract class AmStack<T> {
         sb.append(" < ").append('\n');
 
         // QC
-        sb.append(inds).append("Q:");
+        sb.append(inds).append(" Qc:");
         for (int i = i_qc; i >= 0; i--) {
             char c = qcs[i];
             if (c == 0) {
@@ -142,7 +147,7 @@ public abstract class AmStack<T> {
         sb.append(" < ").append('\n');
 
         // SI
-        sb.append(inds).append("I:");
+        sb.append(inds).append(" Si:");
         for (int i = i_si; i >= 0; i--) {
             if (sis[i] >= 0) {
                 sb.append("  ").append(sis[i]);
@@ -166,6 +171,13 @@ public abstract class AmStack<T> {
 
     public boolean hasCandidates() {
         return null != candidates && !candidates.isEmpty();
+    }
+
+    /**
+     * @return 是否有一个候选堆栈胜出
+     */
+    public boolean hasWinner() {
+        return null != candidates && candidates.size() == 1;
     }
 
     public boolean hasSi() {

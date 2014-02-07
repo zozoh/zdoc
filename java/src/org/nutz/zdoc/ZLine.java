@@ -1,111 +1,87 @@
 package org.nutz.zdoc;
 
-import static org.nutz.zdoc.ZLineType.BLANK;
-import static org.nutz.zdoc.ZLineType.BLOCKQUOTE;
-import static org.nutz.zdoc.ZLineType.HR;
-import static org.nutz.zdoc.ZLineType.OL;
-import static org.nutz.zdoc.ZLineType.PARAGRAPH;
-import static org.nutz.zdoc.ZLineType.UL;
+import static org.nutz.zdoc.ZLineType.*;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.nutz.lang.Lang;
 import org.nutz.lang.Strings;
 
 public class ZLine {
 
     public String origin;
 
-    public String text;
+    private String text;
 
     public int indent;
 
-    public int blockIndent;
+    public int blockLevel;
 
     public ZLineType type;
+
+    public int space;
 
     // OL 专用，可以是 '#','*',或者 0-9,A-Z,a-z
     public char itype;
 
     ZLine() {}
 
-    public ZLine(String line) {
-        origin = line;
-        // 空白行，缩进无所谓
-        if (Strings.isBlank(line)) {
-            text = "";
-            type = BLANK;
-            return;
-        }
-        // 数数行的缩进
-        int space = 0;
-        int i = 0;
-        for (; i < line.length(); i++) {
-            char c = line.charAt(i);
-            // 制表符
-            if (c == '\t') {
-                space += 4;
-            }
-            // 空白
-            else if (Character.isWhitespace(c)) {
-                space += 1;
-            }
-            // 其他
-            else {
-                break;
-            }
-        }
-        indent = space / 4;
-        // 得到文字
-        text = line.substring(i);
-        String trimText = this.trimmed();
+    public ZLine(String str) {
+        origin = str;
+        text = str;
+    }
 
-        // 计算类型 ...
-        // UL
-        if (text.startsWith("* ")) {
-            type = UL;
-            text = text.substring(2);
-        }
-        // OL
-        else if (text.startsWith("# ")) {
-            itype = '#';
-            type = OL;
-            text = text.substring(2);
-        }
-        // OL，用数字或者字母作为标识
-        else if (text.matches("^[0-9a-zA-Z]+[.][ ].+$")) {
-            itype = text.charAt(0);
-            type = OL;
-            text = text.substring(text.indexOf('.') + 2);
-        }
-        // HR
-        else if (trimText.matches("^[ *^+=-]{4,}$")) {
-            type = HR;
-            text = trimText;
-        }
-        // BLOCKQUOTE
-        else if (text.startsWith("> ")) {
-            type = BLOCKQUOTE;
-            Matcher m = Pattern.compile("^((>[ \t]+)+)(.*)$").matcher(text);
-            if (m.find()) {
-                blockIndent = m.group(1).replaceAll("[ \t]", "").length();
-                text = m.group(3);
-                _trim = null;
-            } else {
-                throw Lang.impossible();
-            }
-        }
-        // PARAGRAPH
-        else {
-            type = PARAGRAPH;
-        }
+    public ZLine type(ZLineType type) {
+        this.type = type;
+        return this;
+    }
 
-        // 如果是普通块，还原多余的缩进
-        if (PARAGRAPH == type && indent * 4 != space) {
+    public ZLine text(String str) {
+        this.text = str;
+        this._trim = null;
+        this._trim_lower = null;
+        return this;
+    }
+
+    public String text() {
+        return this.text;
+    }
+
+    public ZLine compensateSpace() {
+        if (indent * 4 != space) {
             text = Strings.dup(' ', space - indent * 4) + text;
         }
+        return this;
+    }
 
+    public ZLine evalIndent() {
+        // 非空白行才要计算缩进
+        if (!Strings.isBlank(origin)) {
+            // 数数行的缩进
+            space = 0;
+            int i = 0;
+            for (; i < origin.length(); i++) {
+                char c = origin.charAt(i);
+                // 制表符
+                if (c == '\t') {
+                    space += 4;
+                }
+                // 空白
+                else if (Character.isWhitespace(c)) {
+                    space += 1;
+                }
+                // 其他
+                else {
+                    break;
+                }
+            }
+            indent = space / 4;
+            // 得到文字
+            text = origin.substring(i);
+        }
+        // 空白行，缩进无所谓
+        else {
+            text = "";
+        }
+
+        return this;
     }
 
     /**
@@ -120,11 +96,7 @@ public class ZLine {
         if (this.indent == indent) {
             return this;
         }
-        // 仅仅需要调整缩进值
-        if (PARAGRAPH != this.type) {
-            this.indent = indent;
-            return this;
-        }
+
         // 增加空格
         if (this.indent > indent) {
             this.text = Strings.dup(' ', (this.indent - indent) * 4) + text;

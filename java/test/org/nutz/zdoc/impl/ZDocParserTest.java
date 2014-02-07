@@ -1,35 +1,15 @@
 package org.nutz.zdoc.impl;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.nutz.zdoc.ZDocEleType.IMG;
-import static org.nutz.zdoc.ZDocEleType.INLINE;
-import static org.nutz.zdoc.ZDocNodeType.CODE;
-import static org.nutz.zdoc.ZDocNodeType.HEADER;
-import static org.nutz.zdoc.ZDocNodeType.LI;
-import static org.nutz.zdoc.ZDocNodeType.NODE;
-import static org.nutz.zdoc.ZDocNodeType.OL;
-import static org.nutz.zdoc.ZDocNodeType.PARAGRAPH;
-import static org.nutz.zdoc.ZDocNodeType.TABLE;
-import static org.nutz.zdoc.ZDocNodeType.TD;
-import static org.nutz.zdoc.ZDocNodeType.TH;
-import static org.nutz.zdoc.ZDocNodeType.THEAD;
-import static org.nutz.zdoc.ZDocNodeType.TR;
+import static org.nutz.zdoc.ZDocEleType.*;
+import static org.nutz.zdoc.ZDocNodeType.*;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.nutz.json.Json;
-import org.nutz.lang.Lang;
 import org.nutz.zdoc.AbstractParsingTest;
-import org.nutz.zdoc.Parsing;
-import org.nutz.zdoc.ZDocEle;
-import org.nutz.zdoc.ZDocEleType;
 import org.nutz.zdoc.ZDocNode;
-import org.nutz.zdoc.ZDocNodeType;
 
 public class ZDocParserTest extends AbstractParsingTest {
-
-    private ZDocParser parser;
 
     @Before
     public void before() {
@@ -189,50 +169,4 @@ public class ZDocParserTest extends AbstractParsingTest {
 
     }
 
-    protected void _CE(ZDocNode nd,
-                       int index,
-                       ZDocEleType exType,
-                       String exAttrs,
-                       String exText,
-                       int... iPaths) {
-        ZDocEle ele = nd.eles().get(index).ele(iPaths);
-
-        Object exMap = Json.fromJson(exAttrs);
-        Object attMap = Json.fromJson(ele.attrsAsJson());
-
-        assertEquals(exType, ele.type());
-        assertTrue(Lang.equals(exMap, attMap));
-        assertEquals(exText, ele.text());
-    }
-
-    protected void _C(ZDocNode nd,
-                      ZDocNodeType exType,
-                      int exChildCount,
-                      String exAttrs,
-                      String exText,
-                      int... iPaths) {
-        ZDocNode nd2 = nd.node(iPaths);
-
-        Object exMap = Json.fromJson(exAttrs);
-        Object attMap = Json.fromJson(Json.toJson(nd2.attrs().getInnerMap()));
-
-        assertEquals(exType, nd2.type());
-        assertEquals(exChildCount, nd2.children().size());
-        assertTrue(Lang.equals(exMap, attMap));
-        assertEquals(exText, nd2.text());
-    }
-
-    private ZDocNode PSf(String ph) {
-        Parsing ing = INGf(ph);
-        ing.fa = NewAmFactory("zdoc");
-        parser.build(ing);
-        return ing.root;
-    }
-
-    private ZDocNode PS(String str) {
-        Parsing ing = ING(str);
-        ing.fa = NewAmFactory("zdoc");
-        parser.build(ing);
-        return ing.root;
-    }
 }

@@ -24,7 +24,7 @@ public class MdLinkIdAm extends ZDocAm {
     @Override
     public AmStatus eat(AmStack<ZDocEle> as, char c) {
         if (']' == c)
-            return AmStatus.DONE;
+            return AmStatus.DONE_BACK;
         as.buffer.push(c);
         return AmStatus.CONTINUE;
     }

@@ -16,6 +16,8 @@ import org.nutz.lang.util.Context;
 
 public class AbstractParsingTest {
 
+    protected Parser parser;
+
     protected AmFactory NewAmFactory(String name) {
         return new AmFactory("org/nutz/zdoc/am/" + name + ".js");
     }
@@ -26,6 +28,53 @@ public class AbstractParsingTest {
 
     protected Parsing INGf(String ph) {
         return new Parsing(Streams.fileInr(ph));
+    }
+
+    protected void _C(ZDocNode nd,
+                      ZDocNodeType exType,
+                      int exChildCount,
+                      String exAttrs,
+                      String exText,
+                      int... iPaths) {
+        ZDocNode nd2 = nd.node(iPaths);
+
+        Object exMap = Json.fromJson(exAttrs);
+        Object attMap = Json.fromJson(Json.toJson(nd2.attrs().getInnerMap()));
+
+        assertEquals(exType, nd2.type());
+        assertEquals(exChildCount, nd2.children().size());
+        assertTrue(Lang.equals(exMap, attMap));
+        assertEquals(exText, nd2.text());
+    }
+
+    protected void _CE(ZDocNode nd,
+                       int index,
+                       ZDocEleType exType,
+                       String exAttrs,
+                       String exText,
+                       int... iPaths) {
+        ZDocEle ele = nd.eles().get(index).ele(iPaths);
+
+        Object exMap = Json.fromJson(exAttrs);
+        Object attMap = Json.fromJson(ele.attrsAsJson());
+
+        assertEquals(exType, ele.type());
+        assertTrue(Lang.equals(exMap, attMap));
+        assertEquals(exText, ele.text());
+    }
+
+    protected ZDocNode PSf(String ph) {
+        Parsing ing = INGf(ph);
+        ing.fa = NewAmFactory("zdoc");
+        parser.build(ing);
+        return ing.root;
+    }
+
+    protected ZDocNode PS(String str) {
+        Parsing ing = ING(str);
+        ing.fa = NewAmFactory("zdoc");
+        parser.build(ing);
+        return ing.root;
     }
 
     protected void _Cstl(ZDocEle root, int i, String expectStyle) {

@@ -32,6 +32,13 @@ public class Parsing {
 
     public StringBuilder raw;
 
+    /**
+     * 供扫描器使用的，说明现在文档正在处于的层别，默认为 0
+     * <p>
+     * 比如对于 Markdown 之类的依靠缩进来判断代码段
+     */
+    public int scanLevel;
+
     public Parsing(Reader reader) {
         this.reader = Streams.buffr(reader);
         this.root = new ZDocNode();
@@ -101,7 +108,7 @@ public class Parsing {
                 throw Lang.makeThrow("Fail to parse :\n%s", str);
         }
         // 关闭堆栈得到对象
-        return stack.close().normalize();
+        return stack.close();
     }
 
 }
