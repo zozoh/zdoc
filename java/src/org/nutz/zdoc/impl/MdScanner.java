@@ -30,6 +30,8 @@ public class MdScanner extends AbstractScanner {
             if (line.trimmed().equals("---")) {
                 if (null == parseMeta(ing))
                     break;
+                str = _read_line(ing);
+                continue;
             }
             // ...........................................
             // 加入之前的块
@@ -258,11 +260,10 @@ public class MdScanner extends AbstractScanner {
     }
 
     public String parseMeta(Parsing ing) throws IOException {
-        String str;
         // 一直读取到 "---" 结束的行
-        str = _read_line(ing);
-        String trimed = Strings.trim(str);
+        String str = _read_line(ing);
         while (null != str) {
+            String trimed = Strings.trim(str);
             if ("---".equals(trimed))
                 break;
 
@@ -296,7 +297,7 @@ public class MdScanner extends AbstractScanner {
             else {
                 String nm = Strings.trim(trimed.substring(0, pos));
                 String v = Strings.trim(trimed.substring(pos + 1));
-                ing.root.attrs().add(nm, v);
+                ing.root.attrs().set(nm, v);
             }
 
             // 读取下一行

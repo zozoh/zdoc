@@ -15,6 +15,21 @@ public class MdScannerTest extends AbstractScannerTest {
     }
 
     @Test
+    public void test_simple_meta() {
+        String s = "---\n";
+        s += "title:abc\n";
+        s += "---\n";
+        s += "xyz";
+        // .............................................
+        Parsing ing = scan(s);
+        // .............................................
+        assertEquals(1, ing.blocks.size());
+        assertEquals("abc",ing.root.attrs().get("title"));
+        // .............................................
+        _C(ing, 0, PARAGRAPH, 0, "xyz", 0, PARAGRAPH);
+    }
+
+    @Test
     public void test_simple_scan() {
         String s = "#A";
         s += "\n    aaa";
