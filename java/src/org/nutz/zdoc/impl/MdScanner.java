@@ -132,9 +132,23 @@ public class MdScanner extends AbstractScanner {
                 while (null != (str = _read_line(ing))) {
                     line = evalLineType(ing, new ZLine(str).evalIndent());
                     lntp = line.type;
-                    if (lntp == block.type || lntp == ZLineType.PARAGRAPH) {
+                    // 引用块统统加入
+                    if (ZLineType.BLOCKQUOTE == lntp) {
                         block._add(line);
-                    } else {
+                    }
+                    // 如果是段落，那么仅当最后一行不是空行的情况才能加入
+                    else if (ZLineType.PARAGRAPH == lntp) {
+                        if (null != block.lastLine
+                            && ZLineType.BLANK == block.lastLine.type)
+                            break;
+                        block._add(line);
+                    }
+                    // 空行也属于本块
+                    else if (ZLineType.BLANK == lntp) {
+                        block._add(line);
+                    }
+                    // 其他统统不属于本引用块
+                    else {
                         break;
                     }
                 }

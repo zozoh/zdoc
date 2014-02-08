@@ -2,6 +2,10 @@
 ====
 > 世间任何文档，都是相似的
 
+-----------
+
+> A
+> B
 
 ### 如何描述一个文档
 
@@ -84,6 +88,7 @@ OBJ       | 嵌入式对象
         TR      
             TD
         
+
 #### 列表 : OL|UL|LI
 
 列表的父子结构必须
@@ -95,8 +100,17 @@ OBJ       | 嵌入式对象
                     PARAGRAPH
                     PARAGRAPH
 
+#### 缩进块 : BLOCKQUOTE
 
+    BLOCKQUOTE
+        P
+        BLOCKQUOTE
+            P
+        P
     
+
+即，`BLOCKQUOTE` 带来缩进，其中的 P 节点承载内容
+
 #### 代码 : CODE
 
 * 代码里的 content 会是纯文本

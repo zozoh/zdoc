@@ -3,13 +3,13 @@ package org.nutz.zdoc.impl;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
-import org.nutz.zdoc.AbstractParsingTest;
+import org.nutz.zdoc.ZDocBaseTest;
 import org.nutz.zdoc.Parsing;
 import org.nutz.zdoc.ZBlock;
 import org.nutz.zdoc.ZLine;
 import org.nutz.zdoc.ZLineType;
 
-public class AbstractScannerTest extends AbstractParsingTest {
+public class AbstractScannerTest extends ZDocBaseTest {
 
     protected AbstractScanner scanner;
 

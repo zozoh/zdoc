@@ -3,7 +3,11 @@ package org.nutz.zdoc.impl.html;
 import java.io.Writer;
 import java.util.List;
 
+import org.nutz.lang.ContinueLoop;
+import org.nutz.lang.Each;
+import org.nutz.lang.ExitLoop;
 import org.nutz.lang.Files;
+import org.nutz.lang.LoopException;
 import org.nutz.lang.Streams;
 import org.nutz.lang.Strings;
 import org.nutz.lang.util.Callback;
@@ -162,12 +166,12 @@ public class RenderToHtml extends RenderTo {
             // 生成名称
             Tag b = Tag.tag("b").setText(zi.title());
             // 遍历子节点
-            Tag sub = Tag.tag("ol", ".doc-index-sub");
-            ZDocIndex child = (ZDocIndex) zi.firstChild();
-            do {
-                joinIndexTag(sub, child);
-                child = (ZDocIndex) child.next();
-            } while (child != null && child != zi.lastChild());
+            final Tag sub = Tag.tag("ol", ".doc-index-sub");
+            zi.eachChild(new Each<ZDocIndex>() {
+                public void invoke(int index, ZDocIndex child, int length) {
+                    joinIndexTag(sub, child);
+                }
+            });
             // 加入到树中
             tag.parent(p).add(b, sub);
         }

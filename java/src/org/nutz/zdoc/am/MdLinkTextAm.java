@@ -13,6 +13,8 @@ public class MdLinkTextAm extends ZDocAm {
 
     @Override
     public AmStatus enter(AmStack<ZDocEle> as, char c) {
+        if (']' == c)
+            return AmStatus.DONE;
         as.buffer.push(c);
         return AmStatus.CONTINUE;
     }

@@ -4,10 +4,10 @@ import org.nutz.am.Am;
 import org.nutz.am.AmFactory;
 import org.nutz.am.AmStatus;
 import org.nutz.lang.Lang;
-import org.nutz.zdoc.AbstractParsingTest;
+import org.nutz.zdoc.ZDocBaseTest;
 import org.nutz.zdoc.ZDocEle;
 
-public abstract class AmTest extends AbstractParsingTest {
+public abstract class AmTest extends ZDocBaseTest {
 
     protected AmFactory fa;
 

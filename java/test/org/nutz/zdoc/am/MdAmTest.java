@@ -16,7 +16,20 @@ public class MdAmTest extends AmTest {
     }
     
     @Test
-    public void test_paragraph(){
+    public void test_paragraph_b(){
+        ZDocEle root;
+        // ...................................................
+        root = _parse("A[](a.zdoc)B");
+        root.normalize();
+        assertEquals(3, root.children().size());
+
+        _Cele(root, 0, INLINE, "A", null);
+        _Cele(root, 1, INLINE, "", "a.zdoc");
+        _Cele(root, 2, INLINE, "B", null);
+    }
+    
+    @Test
+    public void test_paragraph_a(){
         ZDocEle root;
         // ...................................................
         root = _parse("X![A][]Y");

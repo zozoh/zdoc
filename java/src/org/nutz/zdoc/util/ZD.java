@@ -7,10 +7,22 @@ import java.util.List;
 
 import org.nutz.lang.Nums;
 import org.nutz.zdoc.ZBlock;
+import org.nutz.zdoc.ZDocEle;
+import org.nutz.zdoc.ZDocEleType;
 
 public class ZD {
 
     public static final String ATT_BLOCK_INDENT = "$block-indent";
+
+    /**
+     * @param str
+     *            字符串
+     * @return 根据给定字符串创建的一个元素对象
+     */
+    public static ZDocEle ele(String str) {
+        ZDocEle ele = new ZDocEle().type(ZDocEleType.INLINE);
+        return ele.text(str);
+    }
 
     /**
      * 将字符串拆分成一组字符串，给定的包裹字符之内的字符将被逃逸

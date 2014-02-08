@@ -2,20 +2,6 @@
 ====
 > 对于每个段落的解析，依靠自动机。本文为自动机的实现者提供一些参考
 
-1. dsafa
-2. dfasdfasd
-
-    1.BBBBBB
-
-       2.CCCCCCCC
-
-       3. DDDDDDDD
-
-             dsadfsdfasdfasdf
-             asdfasdfadsfas
-            
-3. 3dfasdfa
-
 ### 自动机堆栈
 
     头 .................... 尾

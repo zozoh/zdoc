@@ -6,14 +6,47 @@ import static org.nutz.zdoc.ZDocNodeType.*;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.nutz.zdoc.AbstractParsingTest;
+import org.nutz.am.AmFactory;
+import org.nutz.zdoc.BaseParserTest;
 import org.nutz.zdoc.ZDocNode;
 
-public class ZDocParserTest extends AbstractParsingTest {
+public class ZDocParserTest extends BaseParserTest {
 
     @Before
     public void before() {
         parser = new ZDocParser();
+    }
+
+    @Test
+    public void test_blockquote_00() {
+        String s = "AAA\n";
+        s += "    > T\n";
+
+        ZDocNode root = PS(s);
+
+        _C(root, NODE, 1, "{}", "");
+        _C(root, HEADER, 1, "{}", "AAA", 0);
+        _C(root, BLOCKQUOTE, 1, "{}", "", 0, 0);
+        _C(root, PARAGRAPH, 0, "{}", "T ", 0, 0, 0);
+    }
+
+    @Test
+    public void test_blockquote_01() {
+        String s = "AAA\n";
+        s += "    > X\n";
+        s += "    > > A\n";
+        s += "    > > B\n";
+        s += "    > Y\n";
+
+        ZDocNode root = PS(s);
+
+        _C(root, NODE, 1, "{}", "");
+        _C(root, HEADER, 1, "{}", "AAA", 0);
+        _C(root, BLOCKQUOTE, 3, "{}", "", 0, 0);
+        _C(root, PARAGRAPH, 0, "{}", "X ", 0, 0, 0);
+        _C(root, BLOCKQUOTE, 1, "{}", "", 0, 0, 1);
+        _C(root, PARAGRAPH, 0, "{}", "A B ", 0, 0, 1, 0);
+        _C(root, PARAGRAPH, 0, "{}", "Y ", 0, 0, 2);
     }
 
     @Test
@@ -39,7 +72,7 @@ public class ZDocParserTest extends AbstractParsingTest {
     }
 
     @Test
-    public void test_code_01() {
+    public void test_code_00() {
         String code = "abc";
         code += "\n|--|";
         code += "\nyyy";
@@ -169,4 +202,13 @@ public class ZDocParserTest extends AbstractParsingTest {
 
     }
 
+    @Override
+    protected AmFactory genAmFactory() {
+        return NewAmFactory("zdoc");
+    }
+
+    @Override
+    protected String getRootAmName() {
+        return "zdocParagraph";
+    }
 }

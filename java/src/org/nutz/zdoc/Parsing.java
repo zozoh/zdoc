@@ -28,6 +28,8 @@ public class Parsing {
 
     public AmFactory fa;
 
+    public String rootAmName;
+
     public ZDocAmStack stack;
 
     public StringBuilder raw;
@@ -92,7 +94,7 @@ public class Parsing {
      */
     public ZDocEle parseString(String str) {
         char[] cs = str.toCharArray();
-        Am<ZDocEle> am = fa.getAm(ZDocParallelAm.class, "zdocParagraph");
+        Am<ZDocEle> am = fa.getAm(ZDocParallelAm.class, rootAmName);
         // 准备堆栈
         AmStack<ZDocEle> stack = this.stack.born();
         stack.pushObj(stack.bornObj());

@@ -163,6 +163,7 @@ public class ZDocHome {
                 if (zf.matchType("^zdoc|man$")) {
                     log.infof("zdoc: %s", rph);
                     Parsing ing = new Parsing(io.readString(zf));
+                    ing.rootAmName = "zdocParagraph";
                     ing.fa = fa_zdoc;
                     paZDoc.build(ing);
                     zi.docRoot(ing.root).rawTex(ing.raw);
@@ -171,6 +172,7 @@ public class ZDocHome {
                 else if (zf.matchType("^md|markdown$")) {
                     log.infof("md: %s", rph);
                     Parsing ing = new Parsing(io.readString(zf));
+                    ing.rootAmName = "mdParagraph";
                     ing.fa = fa_md;
                     paMd.build(ing);
                     zi.docRoot(ing.root).rawTex(ing.raw);
@@ -244,7 +246,6 @@ public class ZDocHome {
                 _read_index_by_native(topf, topzi);
             }
         }
-        _read_index_by_native(src, index);
     }
 
     private void _read_index_by_native(ZFile zf, ZDocIndex zi) {
@@ -276,7 +277,9 @@ public class ZDocHome {
         // 设置自身的值
         zi.file(zf);
         zi.author(Xmls.getAttr(ele, "author"));
-        zi.title(Xmls.getAttr(ele, "title"));
+        String title = Xmls.getAttr(ele, "title");
+        if (!Strings.isBlank(title))
+            zi.title(title);
 
         // 判断是否有子
         List<Element> subeles = Xmls.children(ele, "doc");
@@ -295,7 +298,7 @@ public class ZDocHome {
     }
 
     private void _read_rss(MultiLineProperties pp) {
-        String[] ss = Strings.splitIgnoreBlank(pp.get("zdoc-rs"), ",\n");
+        String[] ss = Strings.splitIgnoreBlank(pp.get("zdoc-rs"), "[,\n]");
         for (String s : ss) {
             ZFile d = src.get(s);
             if (null != d) {

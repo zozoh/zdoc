@@ -5,6 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.nutz.lang.Each;
+import org.nutz.lang.Files;
 import org.nutz.lang.Strings;
 import org.nutz.lang.util.Callback;
 import org.nutz.lang.util.Node;
@@ -50,11 +51,17 @@ public class ZDocIndex extends SimpleNode<ZFile> {
 
     public String toString(int indent) {
         StringBuilder sb = new StringBuilder();
-        String prefix = Strings.dup("    ", indent);
-        sb.append(prefix).append(path).append(" >> ").append(file());
-        if (null != title) {
-            sb.append(prefix).append(String.format("\n[%s]", title));
+        ZFile f = file();
+        String prefix = Strings.dup("   ", indent);
+        sb.append(prefix);
+        if (null == f) {
+            sb.append("???");
+        } else if (f.isDir()) {
+            sb.append("D:").append(f.name());
+        } else if (f.isFile()) {
+            sb.append("F:").append(f.name());
         }
+        sb.append(String.format("[%s]", Strings.sNull(title)));
         indent++;
         for (ZDocIndex child : children()) {
             sb.append('\n').append(child.toString(indent));
@@ -175,6 +182,10 @@ public class ZDocIndex extends SimpleNode<ZFile> {
 
     public ZDocIndex file(ZFile file) {
         this.set(file);
+        // 如果未曾设置标题，就用文件名做标题设置一下
+        if (Strings.isBlank(title())) {
+            title(Files.getMajorName(file.path()));
+        }
         return this;
     }
 
