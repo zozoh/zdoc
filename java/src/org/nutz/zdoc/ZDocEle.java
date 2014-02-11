@@ -5,9 +5,12 @@ import java.util.List;
 
 import org.nutz.css.CssRule;
 import org.nutz.json.Json;
+import org.nutz.json.JsonFormat;
 import org.nutz.lang.Strings;
 
 public class ZDocEle {
+
+    private ZDocNode myNode;
 
     private ZDocEleType type;
 
@@ -55,6 +58,15 @@ public class ZDocEle {
         this.tagName = "";
         // this.children = new ArrayList<ZDocEle>(5);
         this.children = new LinkedList<ZDocEle>();
+    }
+
+    public ZDocNode myNode() {
+        return myNode;
+    }
+
+    public ZDocEle myNode(ZDocNode myNode) {
+        this.myNode = myNode;
+        return this;
     }
 
     public ZDocEleType type() {
@@ -153,7 +165,14 @@ public class ZDocEle {
     }
 
     public String attrsAsJson() {
-        return Json.toJson(attrs.getInnerMap());
+        return Json.toJson(attrs.getInnerMap(), JsonFormat.compact());
+    }
+
+    public ZLinkInfo linkInfo(String by) {
+        String key = attrString(by);
+        if (null != key && key.startsWith("$"))
+            return myNode.root().links().get(key.substring(1));
+        return null;
     }
 
     public String href() {
@@ -228,13 +247,13 @@ public class ZDocEle {
     }
 
     public boolean hasStyleAs(String name, String value) {
-        return hasAttrAs(name, value, true);
+        return hasStyleAs(name, value, true);
     }
 
     public boolean hasStyleAs(String name, String value, boolean ignoreCase) {
         if (null == value)
-            return !hasAttr(name);
-        String v = attrString(name);
+            return !hasStyle(name);
+        String v = style(name);
         if (null == v)
             return false;
         if (ignoreCase)

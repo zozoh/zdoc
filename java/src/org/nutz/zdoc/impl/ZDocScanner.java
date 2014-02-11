@@ -64,7 +64,6 @@ public class ZDocScanner extends AbstractScanner {
         // 开始循环读取行
         ZBlock block = new ZBlock();
         ZLine line = evalLineType(new ZLine(str).evalIndent());
-        ZLineType lntp = line.type;
         while (null != str) {
             // ...........................................
             // 加入之前的块
@@ -74,8 +73,8 @@ public class ZDocScanner extends AbstractScanner {
             }
             // ...........................................
             // 表格
-            if (ZLineType.TABLE == lntp) {
-                block.type = lntp;
+            if (ZLineType.TABLE == line.type) {
+                block.type = line.type;
                 block.indent = line.indent;
                 block._add(line);
                 while (null != (str = _read_line(ing))) {
@@ -89,8 +88,8 @@ public class ZDocScanner extends AbstractScanner {
             }
             // ...........................................
             // 代码
-            else if (ZLineType.CODE == lntp) {
-                block.type = lntp;
+            else if (ZLineType.CODE == line.type) {
+                block.type = line.type;
                 block.indent = line.indent;
                 int pBegin = line.trimLower().indexOf('<');
                 if (pBegin > 0) {
@@ -112,8 +111,8 @@ public class ZDocScanner extends AbstractScanner {
             }
             // ...........................................
             // 注释
-            else if (ZLineType.COMMENT == lntp) {
-                block.type = lntp;
+            else if (ZLineType.COMMENT == line.type) {
+                block.type = line.type;
                 block.indent = line.indent;
                 String txt = line.text();
                 line.text(txt.substring("<!--".length()));
@@ -135,15 +134,14 @@ public class ZDocScanner extends AbstractScanner {
             }
             // ...........................................
             // 列表
-            else if (ZLineType.UL == lntp || ZLineType.OL == lntp) {
-                block.type = lntp;
+            else if (ZLineType.UL == line.type || ZLineType.OL == line.type) {
+                block.type = line.type;
                 block.indent = line.indent;
                 block._add(line);
                 while (null != (str = _read_line(ing))) {
                     line = evalLineType(new ZLine(str).evalIndent());
-                    lntp = line.type;
-                    if (ZLineType.BLANK == lntp
-                        || (lntp == block.type && line.indent == block.indent)) {
+                    if (ZLineType.BLANK == line.type
+                        || (line.type == block.type && line.indent == block.indent)) {
                         block._add(line);
                     } else {
                         break;
@@ -153,14 +151,14 @@ public class ZDocScanner extends AbstractScanner {
             }
             // ...........................................
             // 引用
-            else if (ZLineType.BLOCKQUOTE == lntp) {
-                block.type = lntp;
+            else if (ZLineType.BLOCKQUOTE == line.type) {
+                block.type = line.type;
                 block.indent = line.indent;
                 block._add(line);
                 while (null != (str = _read_line(ing))) {
                     line = evalLineType(new ZLine(str).evalIndent());
-                    lntp = line.type;
-                    if (lntp == block.type || lntp == ZLineType.PARAGRAPH) {
+                    if (line.type == block.type
+                        || line.type == ZLineType.PARAGRAPH) {
                         block._add(line);
                     } else {
                         break;
@@ -170,26 +168,25 @@ public class ZDocScanner extends AbstractScanner {
             }
             // ...........................................
             // HR
-            else if (ZLineType.HR == lntp) {
-                block.type = lntp;
+            else if (ZLineType.HR == line.type) {
+                block.type = line.type;
                 block.indent = line.indent;
                 block._add(line);
             }
             // ...........................................
             // HTML
-            else if (ZLineType.HTML == lntp) {
+            else if (ZLineType.HTML == line.type) {
                 throw Lang.impossible();
             }
             // ...........................................
             // 普通段落
-            else if (ZLineType.PARAGRAPH == lntp) {
-                block.type = lntp;
+            else if (ZLineType.PARAGRAPH == line.type) {
+                block.type = line.type;
                 block.indent = line.indent;
                 block._add(line);
                 while (null != (str = _read_line(ing))) {
                     line = evalLineType(new ZLine(str).evalIndent());
-                    lntp = line.type;
-                    if (lntp == block.type && line.indent == block.indent) {
+                    if (line.type == block.type && line.indent == block.indent) {
                         block._add(line);
                     } else {
                         break;
@@ -199,14 +196,13 @@ public class ZDocScanner extends AbstractScanner {
             }
             // ...........................................
             // 空行
-            else if (ZLineType.BLANK == lntp) {
+            else if (ZLineType.BLANK == line.type) {
                 // 啥都不做，继续读下一行
             }
 
             // 再读一行
             str = this._read_line(ing);
             line = evalLineType(new ZLine(str).evalIndent());
-            lntp = line.type;
         }
 
         // 最后一块

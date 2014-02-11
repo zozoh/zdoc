@@ -8,6 +8,7 @@ import org.nutz.zdoc.impl.MdParserTest;
 import org.nutz.zdoc.impl.MdScannerTest;
 import org.nutz.zdoc.impl.ZDocParserTest;
 import org.nutz.zdoc.impl.ZDocScannerTest;
+import org.nutz.zdoc.impl.html.MarkdownNode2HtmlTest;
 import org.nutz.zdoc.util.ZDTest;
 
 @RunWith(Suite.class)
@@ -18,5 +19,6 @@ import org.nutz.zdoc.util.ZDTest;
                      ZDocParserTest.class,
                      MdAmTest.class,
                      MdScannerTest.class,
-                     MdParserTest.class})
+                     MdParserTest.class,
+                     MarkdownNode2HtmlTest.class})
 public class AllZDocTest {}

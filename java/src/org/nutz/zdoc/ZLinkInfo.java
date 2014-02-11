@@ -18,11 +18,14 @@ public class ZLinkInfo {
         int pos = str.indexOf(' ');
         if (pos > 0) {
             link = str.substring(0, pos);
+            if (Strings.isQuoteBy(link, '<', '>')) {
+                link = Strings.trim(link.substring(1, link.length() - 1));
+            }
             title = Strings.trim(str.substring(pos + 1));
             if (Strings.isQuoteBy(title, '"', '"')
                 || Strings.isQuoteBy(title, '\'', '\'')
                 || Strings.isQuoteBy(title, '(', ')')) {
-                title = title.substring(1, title.length() - 1);
+                title = Strings.trim(title.substring(1, title.length() - 1));
             }
         } else {
             link = str;

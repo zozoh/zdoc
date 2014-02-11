@@ -15,6 +15,56 @@ public class MdScannerTest extends AbstractScannerTest {
     }
 
     @Test
+    public void test_link_define() {
+        String s = "[a0]: http://nutzam.com 'Nutz'\n";
+        s += "ABC\n";
+        s += "[a1]: http://www.google.com 'Google'\n";
+        // .............................................
+        Parsing ing = scan(s);
+        // .............................................
+        assertEquals(1, ing.blocks.size());
+        // .............................................
+        _C(ing, 0, PARAGRAPH, 0, "ABC", 0, PARAGRAPH);
+        // .............................................
+        assertEquals(2, ing.root.links().size());
+        assertEquals("http://nutzam.com", ing.root.links().get("a0").link());
+        assertEquals("Nutz", ing.root.links().get("a0").title());
+        // .............................................
+        assertEquals("http://www.google.com", ing.root.links().get("a1").link());
+        assertEquals("Google", ing.root.links().get("a1").title());
+    }
+
+    @Test
+    public void test_blockquote_after_p() {
+        String s = "**A**\n";
+        s += "> q";
+        // .............................................
+        Parsing ing = scan(s);
+        // .............................................
+        assertEquals(2, ing.blocks.size());
+        // .............................................
+        _C(ing, 0, PARAGRAPH, 0, "**A**", 0, PARAGRAPH);
+        // .............................................
+        _C(ing, 1, BLOCKQUOTE, 0, "q", 0, BLOCKQUOTE);
+    }
+
+    @Test
+    public void test_code_after_list() {
+        String s = "* A";
+        s += "\n";
+        s += "\n    aaa";
+        // .............................................
+        Parsing ing = scan(s);
+        // .............................................
+        assertEquals(2, ing.blocks.size());
+        // .............................................
+        _C(ing, 0, UL, 0, "A", 0, UL);
+        _C(ing, 0, UL, 1, "", 0, BLANK);
+        // .............................................
+        _C(ing, 1, CODE, 0, "aaa", 0, CODE);
+    }
+
+    @Test
     public void test_simple_meta() {
         String s = "---\n";
         s += "title:abc\n";
@@ -24,7 +74,7 @@ public class MdScannerTest extends AbstractScannerTest {
         Parsing ing = scan(s);
         // .............................................
         assertEquals(1, ing.blocks.size());
-        assertEquals("abc",ing.root.attrs().get("title"));
+        assertEquals("abc", ing.root.attrs().get("title"));
         // .............................................
         _C(ing, 0, PARAGRAPH, 0, "xyz", 0, PARAGRAPH);
     }

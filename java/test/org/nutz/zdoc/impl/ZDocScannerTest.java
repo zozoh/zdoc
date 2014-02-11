@@ -3,11 +3,7 @@ package org.nutz.zdoc.impl;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.nutz.zdoc.ZLineType.BLOCKQUOTE;
-import static org.nutz.zdoc.ZLineType.HR;
-import static org.nutz.zdoc.ZLineType.OL;
-import static org.nutz.zdoc.ZLineType.PARAGRAPH;
-import static org.nutz.zdoc.ZLineType.UL;
+import static org.nutz.zdoc.ZLineType.*;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -18,6 +14,27 @@ public class ZDocScannerTest extends AbstractScannerTest {
     @Before
     public void before() {
         scanner = new ZDocScanner();
+    }
+
+    @Test
+    public void test_simple_table() {
+        String s = "AAAAAAA\n";
+        s += "    || H1  || H2  ||\n";
+        s += "    || --- || --- ||\n";
+        s += "    || C11 || C12 ||\n";
+        s += "    || C21 || C22 ||\n";
+        s += "    \n";
+        s += "    XYZ";
+
+        Parsing ing = scan(s);
+
+        assertEquals(3, ing.blocks.size());
+
+        _C(ing, 0, PARAGRAPH, 0, "AAAAAAA", 0, PARAGRAPH);
+        _C(ing, 1, TABLE, 0, "|| H1  || H2  ||", 1, TABLE);
+
+        _C(ing, 2, PARAGRAPH, 0, "XYZ", 1, PARAGRAPH);
+
     }
 
     @Test

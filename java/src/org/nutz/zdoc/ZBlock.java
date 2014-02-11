@@ -36,7 +36,7 @@ public class ZBlock {
 
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append(String.format("BLOCK:indent=%d", indent));
+        sb.append(String.format("BLOCK(%s):indent=%d", type, indent));
         for (int i = 0; i < lines.size(); i++) {
             sb.append('\n')
               .append(i)

@@ -122,9 +122,9 @@ public class MdParser extends AbstractParser {
                 int indent = p.parent().attrs().getInt("$line-indent");
                 if (b.indent <= indent) {
                     p = p.parent().parent();
-                    // 已经不再是列表了，那么一定是标题，否则就见鬼了
+                    // 已经不再是列表了，那么一定是标题或者根节点，否则就见鬼了
                     if (ZDocNodeType.LI != p.type()) {
-                        if (ZDocNodeType.HEADER != p.type()) {
+                        if (ZDocNodeType.HEADER != p.type() && !p.isTop()) {
                             throw Lang.impossible();
                         }
                         break;

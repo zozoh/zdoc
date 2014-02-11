@@ -177,15 +177,22 @@ public class ZDocParserTest extends BaseParserTest {
 
     @Test
     public void test_simple_table() {
-        ZDocNode root = PSf("org/nutz/zdoc/f/header_table.zdoc");
+        String str = "AAAAAAA\n";
+        str += "    || H1  || H2  ||\n";
+        str += "    || --- || --- ||\n";
+        str += "    || C11 || C12 ||\n";
+        str += "    || C21 || C22 ||\n";
+        str += "    \n";
+        str += "    XYZ";
+        ZDocNode root = PS(str);
 
         assertEquals(1, root.children().size());
-        ZDocNode h1 = root.children().get(0);
+        ZDocNode h1 = root.node(0);
         assertEquals("AAAAAAA", h1.text());
         assertEquals(HEADER, h1.type());
 
-        assertEquals(1, h1.children().size());
-        ZDocNode table = h1.children().get(0);
+        assertEquals(2, h1.children().size());
+        ZDocNode table = h1.node(0);
 
         _C(table, TABLE, 3, "{$cols:['auto','auto']}", "");
         _C(table, THEAD, 2, "{}", "", 0);
@@ -199,6 +206,8 @@ public class ZDocParserTest extends BaseParserTest {
         _C(table, TR, 2, "{}", "", 2);
         _C(table, TD, 0, "{}", " C21 ", 2, 0);
         _C(table, TD, 0, "{}", " C22 ", 2, 1);
+
+        _C(h1, PARAGRAPH, 0, "{}", "XYZ", 1);
 
     }
 

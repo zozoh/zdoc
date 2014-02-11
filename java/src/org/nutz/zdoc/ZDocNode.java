@@ -6,9 +6,11 @@ import static org.nutz.zdoc.ZDocNodeType.UL;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import org.nutz.json.Json;
 import org.nutz.json.JsonFormat;
@@ -25,6 +27,8 @@ public class ZDocNode {
 
     private List<ZDocEle> eles;
 
+    private ZDocNode root;
+
     private ZDocNode parent;
 
     private ZDocNode firstChild;
@@ -39,11 +43,18 @@ public class ZDocNode {
 
     private ZDocAttrs attrs;
 
+    private Map<String, ZLinkInfo> links;
+
     public ZDocNode() {
         this.eles = new LinkedList<ZDocEle>();
         this.children = new LinkedList<ZDocNode>();
         this.attrs = new ZDocAttrs();
         this.type = NODE;
+        this.links = new HashMap<String, ZLinkInfo>();
+    }
+
+    public Map<String, ZLinkInfo> links() {
+        return links;
     }
 
     public boolean isNew() {
@@ -140,8 +151,7 @@ public class ZDocNode {
     }
 
     public ZDocNode addEle(ZDocEle ele) {
-        if (null != ele)
-            this.eles.add(ele.normalize());
+        this.eles.add(ele.myNode(this).normalize());
         return this;
     }
 
@@ -258,8 +268,13 @@ public class ZDocNode {
         }
         this.parent.children.add(this);
         this.depth(parent.depth + 1);
+        this.root = parent.root();
 
         return this;
+    }
+
+    public ZDocNode root() {
+        return isTop() ? this : root;
     }
 
     /**

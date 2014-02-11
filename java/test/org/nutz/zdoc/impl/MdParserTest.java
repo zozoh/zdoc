@@ -8,6 +8,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.nutz.am.AmFactory;
 import org.nutz.zdoc.BaseParserTest;
+import org.nutz.zdoc.ZDocEleType;
 import org.nutz.zdoc.ZDocNode;
 
 public class MdParserTest extends BaseParserTest {
@@ -15,6 +16,40 @@ public class MdParserTest extends BaseParserTest {
     @Before
     public void before() {
         parser = new MdParser();
+    }
+
+    @Test
+    public void test_blockquote_after_p() {
+        String s = "**A**\n";
+        s += "> q";
+
+        ZDocNode root = PS(s);
+
+        _C(root, NODE, 2, "{}", "");
+        _C(root, PARAGRAPH, 0, "{}", "A", 0);
+        _C(root, BLOCKQUOTE, 1, "{}", "", 1);
+        _C(root, PARAGRAPH, 0, "{}", "q ", 1, 0);
+    }
+
+    @Test
+    public void test_simple_em() {
+        String s = "X**Y**Z";
+
+        ZDocNode root = PS(s);
+
+        _C(root, NODE, 1, "{}", "");
+        _C(root, PARAGRAPH, 0, "{}", "XYZ", 0);
+
+        ZDocNode nd = root.node(0);
+        assertEquals(ZDocEleType.INLINE, nd.eles().get(0).type());
+        assertEquals("X", nd.eles().get(0).text());
+        assertEquals(null, nd.eles().get(0).style("font-weight"));
+        assertEquals(ZDocEleType.INLINE, nd.eles().get(1).type());
+        assertEquals("Y", nd.eles().get(1).text());
+        assertEquals("bold", nd.eles().get(1).style("font-weight"));
+        assertEquals(ZDocEleType.INLINE, nd.eles().get(2).type());
+        assertEquals("Z", nd.eles().get(2).text());
+        assertEquals(null, nd.eles().get(2).style("font-weight"));
     }
 
     @Test
@@ -156,15 +191,17 @@ public class MdParserTest extends BaseParserTest {
         str += " --- | --- \n";
         str += " C11 | C12 \n";
         str += " C21 | C22 \n";
+        str += "\n";
+        str += "XYZ";
         ZDocNode root = PS(str);
 
         assertEquals(1, root.children().size());
-        ZDocNode h1 = root.children().get(0);
+        ZDocNode h1 = root.node(0);
         assertEquals("AAAAAAA", h1.text());
         assertEquals(HEADER, h1.type());
 
-        assertEquals(1, h1.children().size());
-        ZDocNode table = h1.children().get(0);
+        assertEquals(2, h1.children().size());
+        ZDocNode table = h1.node(0);
 
         _C(table, TABLE, 3, "{$cols:['auto','auto']}", "");
         _C(table, THEAD, 2, "{}", "", 0);
@@ -178,6 +215,8 @@ public class MdParserTest extends BaseParserTest {
         _C(table, TR, 2, "{}", "", 2);
         _C(table, TD, 0, "{}", " C21 ", 2, 0);
         _C(table, TD, 0, "{}", " C22 ", 2, 1);
+
+        _C(h1, PARAGRAPH, 0, "{}", "XYZ", 1);
 
     }
 

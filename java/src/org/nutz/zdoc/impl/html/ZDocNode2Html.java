@@ -9,6 +9,7 @@ import org.nutz.zdoc.ZDocEle;
 import org.nutz.zdoc.ZDocEleType;
 import org.nutz.zdoc.ZDocNode;
 import org.nutz.zdoc.ZDocNodeType;
+import org.nutz.zdoc.ZLinkInfo;
 
 public class ZDocNode2Html {
 
@@ -177,8 +178,14 @@ public class ZDocNode2Html {
         if (ele.hasAttr("href")) {
             sb.append("<a href=\"").append(ele.href()).append(">");
         }
-        // -------------------------------------------------
-        sb.append("<img src=\"").append(ele.src()).append('"');
+        // ....................................................
+        ZLinkInfo linfo = ele.linkInfo("src");
+        if (null != linfo) {
+            sb.append("<img src=\"").append(linfo.link()).append('"');
+        } else {
+            sb.append("<img src=\"").append(ele.src()).append('"');
+        }
+        // ....................................................
         int w = ele.width();
         if (w > 0) {
             sb.append(" width=\"").append(w).append('"');
@@ -187,11 +194,15 @@ public class ZDocNode2Html {
         if (h > 0) {
             sb.append(" height=\"").append(h).append('"');
         }
-        if (!Strings.isBlank(ele.text())) {
+        // ....................................................
+        if (null != linfo && !Strings.isBlank(linfo.title())) {
+            sb.append(" title=\"").append(linfo.title()).append("\">");
+        } else if (!Strings.isBlank(ele.text())) {
             sb.append(" title=\"").append(ele.text()).append("\">");
+        } else {
+            sb.append(">");
         }
-        sb.append(">");
-        // -------------------------------------------------
+        // ....................................................
         if (ele.hasAttr("href")) {
             sb.append("</a>");
         }
@@ -217,7 +228,7 @@ public class ZDocNode2Html {
         } else if (ele.hasStyleAs("text-decoration", "underline")) {
             tagNames.add("u");
         }
-
+        // ....................................................
         // 整理 style 字段
         StringBuilder sbStyle = new StringBuilder();
         if (ele.hasStyleAs("text-decoratioin", "line-through")) {
@@ -225,30 +236,39 @@ public class ZDocNode2Html {
         } else if (ele.hasStyle("color")) {
             sbStyle.append("color:").append(ele.style("color")).append(";");
         }
-
+        // ....................................................
         // 如果仅有 style
         if (sbStyle.length() > 0 && tagNames.isEmpty()) {
             tagNames.add("span");
         }
-
+        // ....................................................
         // 输出开始标签
         if (!tagNames.isEmpty()) {
+            ZLinkInfo linfo = null;
             sb.append("<").append(tagNames.get(0));
             if (ele.hasAttr("href")) {
-                sb.append(" href=\"").append(ele.href()).append("\"");
+                linfo = ele.linkInfo("href");
+                if (null != linfo) {
+                    sb.append(" href=\"").append(linfo.link()).append("\"");
+                } else {
+                    sb.append(" href=\"").append(ele.href()).append("\"");
+                }
             }
             if (sbStyle.length() > 0) {
                 sb.append(" style=\"").append(sbStyle).append("\"");
+            }
+            if (null != linfo && !Strings.isBlank(linfo.title())) {
+                sb.append(" title=\"").append(linfo.title()).append("\"");
             }
             sb.append(">");
             for (int i = 1; i < tagNames.size(); i++) {
                 sb.append("<").append(tagNames.get(i)).append('>');
             }
         }
-
+        // ....................................................
         // 输出内容
         sb.append(ele.text());
-
+        // ....................................................
         // 输出结束标签
         for (int i = tagNames.size() - 1; i >= 0; i--) {
             sb.append("</").append(tagNames.get(i)).append('>');
@@ -265,7 +285,7 @@ public class ZDocNode2Html {
     private void _join_newline_of_node(StringBuilder sb,
                                        ZDocNode nd,
                                        Rendering ing) {
-        sb.append("\n").append(Strings.dup("    ", nd.depth()));
+        sb.append("\n");// .append(Strings.dup("    ", nd.depth()));
     }
 
 }

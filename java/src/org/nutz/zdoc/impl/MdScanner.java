@@ -23,6 +23,7 @@ public class MdScanner extends AbstractScanner {
         String str = _read_line(ing);
         ZBlock block = new ZBlock();
         while (null != str) {
+            // 评估当前行
             ZLine line = evalLineType(ing, new ZLine(str).evalIndent());
             ZLineType lntp = line.type;
             // ...........................................
@@ -122,6 +123,14 @@ public class MdScanner extends AbstractScanner {
                     } else {
                         break;
                     }
+                }
+                // 下面几种情况命中注定退出列表扫描，恢复代码库扫描级别
+                if (ZLineType.PARAGRAPH == line.type) {
+                    if (ZLineType.BLANK == block.lastLine.type) {
+                        ing.scanLevel = 0;
+                    }
+                } else if (!line.isForList()) {
+                    ing.scanLevel = 0;
                 }
                 continue;
             }
@@ -230,6 +239,10 @@ public class MdScanner extends AbstractScanner {
                         block.type = TABLE;
                         block._add(line);
                     }
+                    // 引用的话，退出
+                    else if (BLOCKQUOTE == line.type) {
+                        break;
+                    }
                     // 其他算是普通段落
                     else {
                         line = new ZLine(str).text(str)
@@ -243,6 +256,11 @@ public class MdScanner extends AbstractScanner {
                     line = evalLineType(ing, new ZLine(str));
 
                 } /* 普通段落 的 while 读取结束 */
+
+                // 如果当前行是引用，不要读取下一行
+                if (BLOCKQUOTE == line.type) {
+                    continue;
+                }
             }
             // ...........................................
             // 空行
