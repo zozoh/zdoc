@@ -1,15 +1,17 @@
 package org.nutz.zdoc;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.nutz.am.AmFactory;
 import org.nutz.cache.ZCache;
+import org.nutz.ioc.impl.PropertiesProxy;
 import org.nutz.lang.Lang;
 import org.nutz.lang.Streams;
 import org.nutz.lang.Strings;
@@ -17,7 +19,6 @@ import org.nutz.lang.Times;
 import org.nutz.lang.Xmls;
 import org.nutz.lang.util.Callback;
 import org.nutz.lang.util.Context;
-import org.nutz.lang.util.MultiLineProperties;
 import org.nutz.log.Log;
 import org.nutz.log.Logs;
 import org.nutz.vfs.ZDir;
@@ -36,6 +37,8 @@ public class ZDocHome {
 
     private ZIO io;
 
+    protected String title;
+
     protected ZDir src;
 
     protected ZCache<ZDocTmplObj> libs;
@@ -52,6 +55,14 @@ public class ZDocHome {
 
     protected String htmlIndexPath;
 
+    protected Map<String, ZDocTag> tags;
+
+    protected String[] topTags;
+
+    protected ZDocTag othersTag;
+
+    protected String tagPath;
+
     // 顶层目录都有哪些文件和目录不要扫描的
     private Set<String> topIgnores;
 
@@ -64,6 +75,8 @@ public class ZDocHome {
         this.vars = Lang.context();
         this.rules = new ArrayList<ZDocRule>();
         this.index = new ZDocIndex();
+        this.tags = new HashMap<String, ZDocTag>();
+        this.othersTag = new ZDocTag().setKey("others").setText("Others");
     }
 
     public ZDocHome clear() {
@@ -101,9 +114,10 @@ public class ZDocHome {
             topIgnores.add(fconf.name());
 
             // 读取配置文件
-            MultiLineProperties pp = _read_zdoc_conf(fconf);
+            PropertiesProxy pp = _read_zdoc_conf(fconf);
 
             // 开始分析 ...
+            title = pp.get("zdoc-title", src.name());
             _set_cache_item(tmpl, pp.get("zdoc-tmpl"));
             _set_cache_item(libs, pp.get("zdoc-libs"));
             _read_rules(pp);
@@ -111,8 +125,13 @@ public class ZDocHome {
             _read_vars(pp);
 
             // 读取其他配置字段
-            this.htmlIndexPath = Strings.sBlank(pp.get("zdoc-html-index-path"),
-                                                null);
+            htmlIndexPath = pp.get("zdoc-html-index-path", null);
+
+            // 读取关于标签的配置信息
+            tagPath = pp.get("zdoc-tag--path", "tags");
+            othersTag.setText(pp.get("zdoc-tag-others", othersTag.getText()));
+            topTags = Strings.splitIgnoreBlank(pp.get("zdoc-tag-tops"),
+                                               "[,，\n]");
 
         }
         // 没有配置文件，则试图给个默认值
@@ -191,14 +210,36 @@ public class ZDocHome {
                     zi.updateVerifier(attrs.getList(ZDocAuthor.class,
                                                     "verifier"));
                     zi.title(attrs.getString("title", zi.title()));
-                    Object tags = attrs.get("tags");
-                    if (null != tags) {
-                        if (tags instanceof List) {
-                            zi.tags((List<String>) tags);
-                        } else {
-                            throw Lang.impossible();
+
+                    // 检查标签
+                    if (!zi.file().name().startsWith("README.")) {
+                        Object tagList = attrs.get("tags");
+                        if (null != tagList) {
+                            if (tagList instanceof List) {
+                                zi.tags((List<String>) tagList);
+                            } else {
+                                throw Lang.impossible();
+                            }
+                        }
+                        boolean isOneInTops = false;
+                        for (String str : zi.tags()) {
+                            if (!isOneInTops) {
+                                isOneInTops = Lang.contains(topTags, str);
+                            }
+                            ZDocTag tag = tags.get(str);
+                            if (null == tag) {
+                                tag = new ZDocTag().setText(str).genKey();
+                                tags.put(str, tag);
+                            }
+                            tag.increaseCount().addzDocIndex(zi);
+                        }
+                        // 如果没有顶级标签，则附加上其他标签
+                        if (!isOneInTops) {
+                            othersTag.increaseCount().addzDocIndex(zi);
                         }
                     }
+
+                    // 确定最后修改时间
                     zi.lm(attrs.getAs(Date.class, "lm", zi.lm()));
                 }
             }
@@ -297,7 +338,7 @@ public class ZDocHome {
         }
     }
 
-    private void _read_rss(MultiLineProperties pp) {
+    private void _read_rss(PropertiesProxy pp) {
         String[] ss = Strings.splitIgnoreBlank(pp.get("zdoc-rs"), "[,\n]");
         for (String s : ss) {
             ZFile d = src.get(s);
@@ -308,7 +349,7 @@ public class ZDocHome {
         }
     }
 
-    private void _read_vars(MultiLineProperties pp) {
+    private void _read_vars(PropertiesProxy pp) {
         String[] ss = Strings.splitIgnoreBlank(pp.get("zdoc-vars"), "\n");
         for (String s : ss) {
             int pos = s.indexOf('=');
@@ -318,7 +359,7 @@ public class ZDocHome {
         }
     }
 
-    private void _read_rules(MultiLineProperties pp) {
+    private void _read_rules(PropertiesProxy pp) {
         String[] ss = Strings.splitIgnoreBlank(pp.get("zdoc-rules"), "\n");
         for (String s : ss) {
             int pos = s.lastIndexOf(':');
@@ -329,14 +370,12 @@ public class ZDocHome {
         }
     }
 
-    private MultiLineProperties _read_zdoc_conf(ZFile fconf) {
+    private PropertiesProxy _read_zdoc_conf(ZFile fconf) {
         BufferedReader br = Streams.buffr(io.readString(fconf));
-        MultiLineProperties pp = new MultiLineProperties();
+        PropertiesProxy pp = null;
         try {
-            pp.load(br);
-        }
-        catch (IOException e) {
-            throw Lang.wrapThrow(e);
+            pp = new PropertiesProxy(br);
+            ;
         }
         finally {
             Streams.safeClose(br);

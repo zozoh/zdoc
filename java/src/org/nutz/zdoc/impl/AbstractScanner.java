@@ -39,7 +39,7 @@ public abstract class AbstractScanner {
 
             // ...........................................
             // 看看是否是链接定义
-            Matcher m = Pattern.compile("^(\\[)([0-9a-zA-Z_. -]+)(\\]:[\t ]+)(.*)$")
+            Matcher m = Pattern.compile("^(\\[)([0-9a-zA-Z_. -]+)(\\]:[\t ]?)(.*)$")
                                .matcher(sb);
             if (m.find()) {
                 String key = m.group(2);

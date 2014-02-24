@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import org.nutz.lang.Lang;
 import org.nutz.lang.Strings;
+import org.nutz.lang.util.Disks;
 import org.nutz.zdoc.Rendering;
 import org.nutz.zdoc.ZDocEle;
 import org.nutz.zdoc.ZDocEleType;
@@ -14,6 +15,8 @@ import org.nutz.zdoc.ZLinkInfo;
 public class ZDocNode2Html {
 
     void joinNode(StringBuilder sb, ZDocNode nd, Rendering ing) {
+        if (ing.isOutOfLimit())
+            return;
         // 标题
         if (nd.is(ZDocNodeType.HEADER)) {
             nodeAsHeader(sb, nd, ing);
@@ -149,7 +152,8 @@ public class ZDocNode2Html {
         sb.append("</pre>");
     }
 
-    private void joinEle(StringBuilder sb, ZDocEle ele) {
+    private void joinEle(StringBuilder sb, ZDocEle ele, Rendering ing) {
+        ing.charCount += ele.text().length();
         switch (ele.type()) {
         case INLINE:
         case SUP:
@@ -180,11 +184,9 @@ public class ZDocNode2Html {
         }
         // ....................................................
         ZLinkInfo linfo = ele.linkInfo("src");
-        if (null != linfo) {
-            sb.append("<img src=\"").append(linfo.link()).append('"');
-        } else {
-            sb.append("<img src=\"").append(ele.src()).append('"');
-        }
+        String src = null == linfo ? ele.src() : linfo.link();
+        sb.append("<img src=\"").append(src).append('"');
+        appendAPath(sb, ele, src);
         // ....................................................
         int w = ele.width();
         if (w > 0) {
@@ -205,6 +207,17 @@ public class ZDocNode2Html {
         // ....................................................
         if (ele.hasAttr("href")) {
             sb.append("</a>");
+        }
+    }
+
+    public void appendAPath(StringBuilder sb, ZDocEle ele, String link) {
+        if (null != link && !link.toLowerCase().matches("^[a-z]+://.+$")) {
+            String apath = ele.attrString("apath");
+            if (!Strings.isBlank(apath)) {
+                apath += "/" + link;
+                apath = Disks.getCanonicalPath(apath);
+                sb.append(" apath=\"").append(apath).append('"');
+            }
         }
     }
 
@@ -248,11 +261,9 @@ public class ZDocNode2Html {
             sb.append("<").append(tagNames.get(0));
             if (ele.hasAttr("href")) {
                 linfo = ele.linkInfo("href");
-                if (null != linfo) {
-                    sb.append(" href=\"").append(linfo.link()).append("\"");
-                } else {
-                    sb.append(" href=\"").append(ele.href()).append("\"");
-                }
+                String href = null == linfo ? ele.href() : linfo.link();
+                sb.append(" href=\"").append(href).append("\"");
+                appendAPath(sb, ele, href);
             }
             if (sbStyle.length() > 0) {
                 sb.append(" style=\"").append(sbStyle).append("\"");
@@ -278,7 +289,7 @@ public class ZDocNode2Html {
 
     private void joinEles(StringBuilder sb, ZDocNode nd, Rendering ing) {
         for (ZDocEle ele : nd.eles()) {
-            joinEle(sb, ele);
+            joinEle(sb, ele, ing);
         }
     }
 

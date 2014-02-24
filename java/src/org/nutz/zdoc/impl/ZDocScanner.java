@@ -244,6 +244,11 @@ public class ZDocScanner extends AbstractScanner {
         else if (tmd.startsWith("{{{")) {
             line.type = CODE;
         }
+        // HR
+        else if (tmd.matches("^[=-]{4,}$")) {
+            line.type = HR;
+            line.text(tmd);
+        }
         // TABLE
         else if (Strings.isQuoteBy(tmd, "||", "||")) {
             line.type = TABLE;
@@ -255,11 +260,6 @@ public class ZDocScanner extends AbstractScanner {
         // HTML
         else if (tmd.equalsIgnoreCase("<html>")) {
             line.type = HTML;
-        }
-        // HR
-        else if (tmd.matches("^[=-]{4,}$")) {
-            line.type = HR;
-            line.text(tmd);
         }
         // BLOCKQUOTE
         else if (tmd.startsWith("> ")) {

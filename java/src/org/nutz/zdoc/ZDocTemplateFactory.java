@@ -6,12 +6,15 @@ public interface ZDocTemplateFactory {
      * 
      * @param key
      *            模板的键值
-     *            <ul>
-     *            <li><b>tmpl:xxxx</b> 表示获取模板
-     *            <li><b>lib:xxxx</b> 表示获取代码片段
-     *            </ul>
      * @return 文档模板对象
      */
     ZDocTemplate getTemplte(String key);
+
+    /**
+     * @param key
+     *            代码片段值
+     * @return 文档模板对象
+     */
+    ZDocTemplate getLib(String key);
 
 }

@@ -2,6 +2,7 @@ package org.nutz.zdoc.impl.html;
 
 import java.io.Writer;
 import java.util.List;
+import java.util.Map;
 
 import org.nutz.lang.Each;
 import org.nutz.lang.Files;
@@ -18,9 +19,11 @@ import org.nutz.vfs.ZIO;
 import org.nutz.zdoc.RenderTo;
 import org.nutz.zdoc.Rendering;
 import org.nutz.zdoc.ZDocEle;
+import org.nutz.zdoc.ZDocEleType;
 import org.nutz.zdoc.ZDocIndex;
 import org.nutz.zdoc.ZDocNode;
 import org.nutz.zdoc.ZDocRule;
+import org.nutz.zdoc.ZDocTag;
 import org.nutz.zdoc.ZDocTemplate;
 
 public class RenderToHtml extends RenderTo {
@@ -39,7 +42,7 @@ public class RenderToHtml extends RenderTo {
             public void invoke(ZDocIndex zi) {
                 ZFile zf = zi.file();
                 // 获得相对路径
-                String rph = src.relative(zf);
+                String rph = zi.rpath();
 
                 // 如果是目录，则 copy 全部的资源文件
                 if (zf.isDir()) {
@@ -63,23 +66,39 @@ public class RenderToHtml extends RenderTo {
 
                 // 目标输出文件的相对路径
                 String oph = Files.renameSuffix(rph, ".html");
+                String aph = Files.getParent(oph);
+                if (aph.equals("/"))
+                    aph = "";
+                final String _aph = aph;
 
                 log.info(" RENDER >> " + oph);
 
                 // 将文档内所有相对链接(.zdoc|.man|.md|.markdown)都改一下扩展名
+                // 并对 IMG 和 LINK 都给一个本文档的相对与根的路径
+                // 这样，在渲染的时候，js 端比较容易获得这个路径，以便采用 ajax.load
+                // 的方式组织页面的跳转
                 zi.docRoot().walk(new Callback<ZDocNode>() {
                     public void invoke(ZDocNode nd) {
                         for (ZDocEle ele : nd.eles()) {
-                            String href = ele.href();
-                            if (Strings.isBlank(href))
-                                continue;
-                            if (href.startsWith("http://")
-                                || href.startsWith("https://"))
-                                continue;
-                            if (href.toLowerCase()
-                                    .matches("^(.*)(.zdoc|.man|.md|.markdown)$")) {
-                                href = Files.renameSuffix(href, ".html");
-                                ele.href(href);
+                            // IMG
+                            if (ZDocEleType.IMG == ele.type()) {
+                                ele.attr("apath", _aph);
+                            }
+                            // LINK
+                            else {
+                                String href = ele.href();
+                                if (Strings.isBlank(href))
+                                    continue;
+
+                                href = href.toLowerCase();
+                                if (href.matches("^[a-z]+://.*$"))
+                                    continue;
+
+                                ele.attr("apath", _aph);
+                                if (href.matches("^(.*)(.zdoc|.man|.md|.markdown)$")) {
+                                    href = Files.renameSuffix(href, ".html");
+                                    ele.href(href);
+                                }
                             }
                         }
                     }
@@ -99,28 +118,82 @@ public class RenderToHtml extends RenderTo {
                 map.put("lm", zi.lm());
                 map.put("rpath", zi.rpath());
                 map.put("bpath", zi.bpath());
-                ing.context().put("doc", map);
 
                 // 根据 zDoc 文档将其转换成 HTML 字符串
                 StringBuilder sb = new StringBuilder();
                 joinDoc(sb, zi.docRoot(), ing);
-
                 map.put("content", sb.toString());
+
+                // 生成文档摘要
+                sb = new StringBuilder();
+                joinBrief(sb, zi.docRoot(), ing);
+                zi.briefHtml(sb.toString());
+
+                // 主上下文
+                ing.context().put("doc", map);
 
                 // 得到文档模板对象
                 ZDocRule rule = checkRule(rph);
-                ZDocTemplate tmpl = ing.tfa().getTemplte("tmpl:" + rule.key());
+                ZDocTemplate tmpl = ing.tfa().getTemplte(rule.key());
 
                 // 在目标目录创建对应文件
                 ZFile destf = dest.createFileIfNoExists(oph);
 
                 // 准备渲染
-                Writer wr = Streams.buffw(ing.io().openWriter(destf));
+                Writer wr = Streams.utf8w(ing.io().openOutputStream(destf));
                 tmpl.outputTo(wr, ing.context());
                 Streams.safeClose(wr);
             }
         });
         // 拷贝资源
+        copyResources(ing);
+        // 生成索引
+        genIndexPage(ing);
+        // 生成标签页面
+        genTagPages(ing);
+    }
+
+    @SuppressWarnings("unchecked")
+    private void genTagPages(Rendering ing) {
+        if (!Strings.isBlank(tagPath)) {
+            log.infof("make tags >> %s/*", tagPath);
+            // 得到文档模板对象
+            ZDocRule rule = checkRule(tagPath);
+            ZDocTemplate tmpl = ing.tfa().getTemplte(rule.key());
+
+            NutMap doc = new NutMap();
+            doc.setv("bpath", "..");
+            ing.context().setv("doc", doc);
+            Map<String, ZDocTag> tags = ing.context().getAs("tags", Map.class);
+            for (ZDocTag tag : tags.values()) {
+                _gen_tag_page(ing, tmpl, doc, tag);
+            }
+            // 生成 others Tag
+            _gen_tag_page(ing, tmpl, doc, othersTag);
+        } else {
+            log.info("! Ignore tags");
+        }
+    }
+
+    public void _gen_tag_page(Rendering ing,
+                              ZDocTemplate tmpl,
+                              NutMap doc,
+                              ZDocTag tag) {
+        doc.setv("title", tag.getText());
+        ing.context().setv("tag", tag.genItems());
+
+        // 在目标目录创建对应文件
+        ZFile destf = dest.createFileIfNoExists(tagPath
+                                                + "/"
+                                                + tag.getKey()
+                                                + ".html");
+        // 准备渲染
+        Writer wr = Streams.utf8w(ing.io().openOutputStream(destf));
+        tmpl.outputTo(wr, ing.context());
+        Streams.safeClose(wr);
+    }
+
+    private void copyResources(final Rendering ing) {
         log.info("copy resources ...");
         for (ZFile rs : rss) {
             String rph = src.relative(rs);
@@ -129,43 +202,53 @@ public class RenderToHtml extends RenderTo {
                                      : dest.createFileIfNoExists(rph);
             rs.copyTo(ing.io(), ing.io(), zfDest);
         }
-        // 生成索引
-        if (null != this.htmlIndexPath) {
-            log.info("make index ...");
+    }
 
-            Tag tag = Tag.tag("ol", ".zdoc-index-container");
-            joinIndexTag(tag, index);
+    private void genIndexPage(final Rendering ing) {
+        if (!Strings.isBlank(this.htmlIndexPath)) {
+            log.infof("make index >> %s", htmlIndexPath);
+
+            final Tag tag = Tag.tag("ol", ".zdoc-index-container");
+            index.eachChild(new Each<ZDocIndex>() {
+                public void invoke(int index, ZDocIndex zi, int length) {
+                    if (zi.file().name().startsWith("README."))
+                        return;
+                    joinIndexTag(tag, zi);
+                }
+            });
 
             ing.context().remove("doc");
-            ing.context().put("docIndexes", tag.toString());
+            ing.context().put("siteIndexes", tag.toString());
 
             // 得到文档模板对象
             ZDocRule rule = checkRule(htmlIndexPath);
-            ZDocTemplate tmpl = ing.tfa().getTemplte("tmpl:" + rule.key());
+            ZDocTemplate tmpl = ing.tfa().getTemplte(rule.key());
 
             // 在目标目录创建对应文件
             ZFile destf = dest.createFileIfNoExists(htmlIndexPath);
 
             // 准备渲染
-            Writer wr = Streams.buffw(ing.io().openWriter(destf));
+            Writer wr = Streams.utf8w(ing.io().openOutputStream(destf));
             tmpl.outputTo(wr, ing.context());
             Streams.safeClose(wr);
 
         } else {
-            log.info("! NO index");
+            log.info("! Ignore index");
         }
     }
 
     private void joinIndexTag(Tag p, ZDocIndex zi) {
         // 如果还有子节点
         if (zi.hasChild()) {
-            Tag tag = Tag.tag("li", ".doc-index-node");
+            Tag tag = Tag.tag("li", ".zdoc-index-node");
             // 生成名称
             Tag b = Tag.tag("b").setText(zi.title());
             // 遍历子节点
-            final Tag sub = Tag.tag("ol", ".doc-index-sub");
+            final Tag sub = Tag.tag("ol", ".zdoc-index-wrapper");
             zi.eachChild(new Each<ZDocIndex>() {
                 public void invoke(int index, ZDocIndex child, int length) {
+                    if (child.file().name().startsWith("README."))
+                        return;
                     joinIndexTag(sub, child);
                 }
             });
@@ -190,10 +273,31 @@ public class RenderToHtml extends RenderTo {
         }
     }
 
+    private void joinBrief(StringBuilder sb, ZDocNode root, Rendering ing) {
+        ing.charCount = 0;
+        ing.limit = 256;
+        List<ZDocNode> children = root.children();
+        if (null == children || children.isEmpty()) {
+            sb.append(root.text());
+        } else {
+            ZDocNode2Html nd2html = new ZDocNode2Html();
+            for (ZDocNode nd : root.children()) {
+                nd2html.joinNode(sb, nd, ing);
+                if (ing.isOutOfLimit())
+                    break;
+            }
+            sb.append(" ... ");
+        }
+    }
+
     private void joinDoc(StringBuilder sb, ZDocNode root, Rendering ing) {
+        ing.charCount = 0;
+        ing.limit = 0;
         ZDocNode2Html nd2html = new ZDocNode2Html();
         for (ZDocNode nd : root.children()) {
             nd2html.joinNode(sb, nd, ing);
+            if (ing.isOutOfLimit())
+                break;
         }
     }
 

@@ -294,7 +294,7 @@ public class MdScanner extends AbstractScanner {
             else if (pos == 0) {}
             // 如果以冒号结尾，则表示后面跟随一个列表
             else if (pos == trimed.length() - 1) {
-                String nm = trimed.substring(0, pos);
+                String nm = Strings.trim(trimed.substring(0, pos));
                 List<String> list = new ArrayList<String>(10);
                 while (null != (str = _read_line(ing))) {
                     trimed = Strings.trim(str);
@@ -366,6 +366,11 @@ public class MdScanner extends AbstractScanner {
             line.type = OL;
             line.text(tmd.substring(tmd.indexOf('.') + 2));
         }
+        // HR
+        else if (tmd.matches("^[=-]{4,}$")) {
+            line.type = HR;
+            line.itype = tmd.charAt(0);
+        }
         // TABLE
         else if (tmd.matches("[: \t|-]{3,}")) {
             line.type = TABLE;
@@ -377,11 +382,6 @@ public class MdScanner extends AbstractScanner {
         // HTML
         else if (tmd.equalsIgnoreCase("<html>")) {
             line.type = HTML;
-        }
-        // HR
-        else if (tmd.matches("^[=-]{4,}$")) {
-            line.type = HR;
-            line.itype = tmd.charAt(0);
         }
         // BLOCKQUOTE
         else if (tmd.startsWith("> ")) {

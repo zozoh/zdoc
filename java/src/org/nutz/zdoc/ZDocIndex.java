@@ -9,6 +9,7 @@ import org.nutz.lang.Files;
 import org.nutz.lang.Strings;
 import org.nutz.lang.util.Callback;
 import org.nutz.lang.util.Node;
+import org.nutz.lang.util.NutMap;
 import org.nutz.lang.util.SimpleNode;
 import org.nutz.vfs.ZFile;
 
@@ -17,7 +18,8 @@ import org.nutz.vfs.ZFile;
  * 
  * @author zozoh(zozohtnt@gmail.com)
  */
-public class ZDocIndex extends SimpleNode<ZFile> {
+public class ZDocIndex extends SimpleNode<ZFile> implements
+        Comparable<ZDocIndex> {
 
     private String title;
 
@@ -30,6 +32,8 @@ public class ZDocIndex extends SimpleNode<ZFile> {
     private ZDocNode docRoot;
 
     private String rawTex;
+
+    private String briefHtml;
 
     private List<String> tags;
 
@@ -47,6 +51,20 @@ public class ZDocIndex extends SimpleNode<ZFile> {
 
     public String toString() {
         return toString(0);
+    }
+
+    public NutMap toMap() {
+        NutMap map = new NutMap();
+        map.setv("title", title);
+        map.setv("path", path);
+        map.setv("authors", authors);
+        map.setv("verifiers", verifiers);
+        map.setv("lm", lm);
+        map.setv("rawText", rawTex);
+        map.setv("briefHtml", briefHtml);
+        map.setv("rpath", rpath);
+        map.setv("bpath", bpath);
+        return map;
     }
 
     public String toString(int indent) {
@@ -198,6 +216,15 @@ public class ZDocIndex extends SimpleNode<ZFile> {
         return this;
     }
 
+    public String briefHtml() {
+        return briefHtml;
+    }
+
+    public ZDocIndex briefHtml(String briefHtml) {
+        this.briefHtml = briefHtml;
+        return this;
+    }
+
     public ZDocNode docRoot() {
         return docRoot;
     }
@@ -241,6 +268,11 @@ public class ZDocIndex extends SimpleNode<ZFile> {
     public ZDocIndex bpath(String bpath) {
         this.bpath = bpath;
         return this;
+    }
+
+    @Override
+    public int compareTo(ZDocIndex zi) {
+        return lm.compareTo(zi.lm) * -1;
     }
 
 }

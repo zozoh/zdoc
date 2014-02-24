@@ -1,5 +1,8 @@
 package org.nutz.zdoc;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.nutz.lang.Files;
 import org.nutz.lang.Stopwatch;
 import org.nutz.log.Log;
@@ -34,6 +37,20 @@ public class ZDoc {
         home.dest(dest);
         ZDocTemplateFactory tfa = new FreemarkerTemplateFactory(home);
         Rendering ing = new Rendering(io, tfa);
+        // 设置全局的上下文
+        ing.context().setv("siteTitle", home.title);
+        ing.context().setv("tags", home.tags);
+        ing.context().setv("othersTag", home.othersTag);
+        ing.context().setv("tagPath", home.tagPath);
+        List<ZDocTag> topTags = new ArrayList<ZDocTag>(home.topTags.length);
+        for (String str : home.topTags) {
+            ZDocTag tag = home.tags.get(str);
+            if (null != tag) {
+                topTags.add(tag);
+            }
+        }
+        ing.context().setv("topTags", topTags);
+        // 开始渲染
         home.render(ing);
 
         sw.stop();

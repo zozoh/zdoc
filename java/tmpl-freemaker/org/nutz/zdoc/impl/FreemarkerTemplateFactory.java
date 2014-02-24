@@ -20,12 +20,25 @@ public class FreemarkerTemplateFactory implements ZDocTemplateFactory {
         this.cfg = new Configuration();
         this.cfg.setObjectWrapper(ObjectWrapper.BEANS_WRAPPER);
         this.cfg.setTemplateLoader(loader);
+        this.cfg.setDefaultEncoding("utf-8");
+        this.cfg.setOutputEncoding("utf-8");
     }
 
     @Override
     public ZDocTemplate getTemplte(String key) {
         try {
-            Template tmpl = cfg.getTemplate(key);
+            Template tmpl = cfg.getTemplate("tmpl:" + key, "utf-8");
+            return new FreemarkerTemplate(tmpl);
+        }
+        catch (IOException e) {
+            throw Lang.wrapThrow(e);
+        }
+    }
+
+    @Override
+    public ZDocTemplate getLib(String key) {
+        try {
+            Template tmpl = cfg.getTemplate("lib" + key, "utf-8");
             return new FreemarkerTemplate(tmpl);
         }
         catch (IOException e) {

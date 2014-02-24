@@ -5,6 +5,16 @@ import org.nutz.vfs.ZIO;
 
 public class Rendering {
 
+    public int charCount;
+
+    public int limit;
+
+    public boolean isOutOfLimit() {
+        if (limit <= 0)
+            return false;
+        return charCount > limit;
+    }
+
     /**
      * 读写接口
      */
