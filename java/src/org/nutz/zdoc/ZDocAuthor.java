@@ -1,6 +1,7 @@
 package org.nutz.zdoc;
 
 import org.nutz.lang.Strings;
+import org.nutz.lang.util.NutMap;
 
 public class ZDocAuthor {
 
@@ -43,5 +44,14 @@ public class ZDocAuthor {
 
     public String toString() {
         return String.format("%s(%s)", name, email);
+    }
+
+    public NutMap toMap() {
+        NutMap map = new NutMap();
+        map.setv("name", Strings.sBlank(name, "anonymity"));
+        if (!Strings.isBlank(email)) {
+            map.setv("email", email);
+        }
+        return map;
     }
 }

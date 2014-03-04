@@ -1,5 +1,6 @@
 package org.nutz.zdoc;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -57,13 +58,14 @@ public class ZDocIndex extends SimpleNode<ZFile> implements
         NutMap map = new NutMap();
         map.setv("title", title);
         map.setv("path", path);
-        map.setv("authors", authors);
-        map.setv("verifiers", verifiers);
+        map.setv("authors", this.authorsListMap());
+        map.setv("verifiers", this.verifiersListMap());
         map.setv("lm", lm);
         map.setv("rawText", rawTex);
         map.setv("briefHtml", briefHtml);
         map.setv("rpath", rpath);
         map.setv("bpath", bpath);
+        map.setv("rTargetPath", Files.renameSuffix(rpath, ".html"));
         return map;
     }
 
@@ -145,6 +147,16 @@ public class ZDocIndex extends SimpleNode<ZFile> implements
         return authors;
     }
 
+    public List<NutMap> authorsListMap() {
+        if (null != authors && !authors.isEmpty()) {
+            List<NutMap> list = new ArrayList<NutMap>(authors.size());
+            for (ZDocAuthor au : authors)
+                list.add(au.toMap());
+            return list;
+        }
+        return null;
+    }
+
     public ZDocIndex author(String author) {
         if (Strings.isBlank(author))
             return this;
@@ -156,15 +168,27 @@ public class ZDocIndex extends SimpleNode<ZFile> implements
         return this;
     }
 
-    public ZDocIndex updateAuthors(List<ZDocAuthor> authors) {
+    public ZDocIndex updateAuthors(List<String> authors) {
         if (null != authors && !authors.isEmpty()) {
-            this.authors = authors;
+            this.authors.clear();
+            for (String au : authors)
+                author(au);
         }
         return this;
     }
 
     public List<ZDocAuthor> verifiers() {
         return verifiers;
+    }
+
+    public List<NutMap> verifiersListMap() {
+        if (null != verifiers && !verifiers.isEmpty()) {
+            List<NutMap> list = new ArrayList<NutMap>(verifiers.size());
+            for (ZDocAuthor au : verifiers)
+                list.add(au.toMap());
+            return list;
+        }
+        return null;
     }
 
     public ZDocIndex verifier(String verifier) {
@@ -178,9 +202,11 @@ public class ZDocIndex extends SimpleNode<ZFile> implements
         return this;
     }
 
-    public ZDocIndex updateVerifier(List<ZDocAuthor> verifiers) {
+    public ZDocIndex updateVerifier(List<String> verifiers) {
         if (null != verifiers && !verifiers.isEmpty()) {
-            this.verifiers = verifiers;
+            this.verifiers.clear();
+            for (String au : verifiers)
+                verifier(au);
         }
         return this;
     }

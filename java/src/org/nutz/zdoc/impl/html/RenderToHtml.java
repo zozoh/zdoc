@@ -111,8 +111,8 @@ public class RenderToHtml extends RenderTo {
                         map.put(key, zi.docRoot().attrs().get(key));
                     }
                 }
-                map.put("author", zi.authors());
-                map.put("verifier", zi.verifiers());
+                map.put("authors", zi.authorsListMap());
+                map.put("verifiers", zi.verifiersListMap());
                 map.put("title", zi.title());
                 map.put("tags", zi.tags());
                 map.put("lm", zi.lm());
@@ -120,11 +120,13 @@ public class RenderToHtml extends RenderTo {
                 map.put("bpath", zi.bpath());
 
                 // 根据 zDoc 文档将其转换成 HTML 字符串
+                ing.currentBasePath = zi.bpath();
                 StringBuilder sb = new StringBuilder();
                 joinDoc(sb, zi.docRoot(), ing);
                 map.put("content", sb.toString());
 
                 // 生成文档摘要
+                ing.currentBasePath = "../";
                 sb = new StringBuilder();
                 joinBrief(sb, zi.docRoot(), ing);
                 zi.briefHtml(sb.toString());
@@ -161,15 +163,15 @@ public class RenderToHtml extends RenderTo {
             ZDocRule rule = checkRule(tagPath);
             ZDocTemplate tmpl = ing.tfa().getTemplte(rule.key());
 
-            NutMap doc = new NutMap();
-            doc.setv("bpath", "..");
-            ing.context().setv("doc", doc);
+            NutMap page = new NutMap();
+            page.setv("bpath", "..");
+            ing.context().setv("page", page);
             Map<String, ZDocTag> tags = ing.context().getAs("tags", Map.class);
             for (ZDocTag tag : tags.values()) {
-                _gen_tag_page(ing, tmpl, doc, tag);
+                _gen_tag_page(ing, tmpl, page, tag);
             }
             // 生成 others Tag
-            _gen_tag_page(ing, tmpl, doc, othersTag);
+            _gen_tag_page(ing, tmpl, page, othersTag);
         } else {
             log.info("! Ignore tags");
         }
@@ -177,9 +179,9 @@ public class RenderToHtml extends RenderTo {
 
     public void _gen_tag_page(Rendering ing,
                               ZDocTemplate tmpl,
-                              NutMap doc,
+                              NutMap page,
                               ZDocTag tag) {
-        doc.setv("title", tag.getText());
+        page.setv("title", tag.getText());
         ing.context().setv("tag", tag.genItems());
 
         // 在目标目录创建对应文件
@@ -275,7 +277,7 @@ public class RenderToHtml extends RenderTo {
 
     private void joinBrief(StringBuilder sb, ZDocNode root, Rendering ing) {
         ing.charCount = 0;
-        ing.limit = 256;
+        ing.limit = briefLimit;
         List<ZDocNode> children = root.children();
         if (null == children || children.isEmpty()) {
             sb.append(root.text());
@@ -286,7 +288,6 @@ public class RenderToHtml extends RenderTo {
                 if (ing.isOutOfLimit())
                     break;
             }
-            sb.append(" ... ");
         }
     }
 

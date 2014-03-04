@@ -66,6 +66,11 @@ public class ZDocHome {
     // 顶层目录都有哪些文件和目录不要扫描的
     private Set<String> topIgnores;
 
+    /**
+     * 文章的摘要，最多多少字数
+     */
+    protected int briefLimit;
+
     public ZDocHome(ZIO io) {
         this.io = io;
         this.libs = new ZCache<ZDocTmplObj>();
@@ -118,6 +123,7 @@ public class ZDocHome {
 
             // 开始分析 ...
             title = pp.get("zdoc-title", src.name());
+            briefLimit = pp.getInt("zdoc-brief-limit", 256);
             _set_cache_item(tmpl, pp.get("zdoc-tmpl"));
             _set_cache_item(libs, pp.get("zdoc-libs"));
             _read_rules(pp);
@@ -206,9 +212,8 @@ public class ZDocHome {
                 // 填充索引的关键属性
                 if (null != zi.docRoot()) {
                     ZDocAttrs attrs = zi.docRoot().attrs();
-                    zi.updateAuthors(attrs.getList(ZDocAuthor.class, "author"));
-                    zi.updateVerifier(attrs.getList(ZDocAuthor.class,
-                                                    "verifier"));
+                    zi.updateAuthors(attrs.getList(String.class, "author"));
+                    zi.updateVerifier(attrs.getList(String.class, "verifier"));
                     zi.title(attrs.getString("title", zi.title()));
 
                     // 检查标签

@@ -4,7 +4,6 @@ import java.util.ArrayList;
 
 import org.nutz.lang.Lang;
 import org.nutz.lang.Strings;
-import org.nutz.lang.util.Disks;
 import org.nutz.zdoc.Rendering;
 import org.nutz.zdoc.ZDocEle;
 import org.nutz.zdoc.ZDocEleType;
@@ -152,19 +151,18 @@ public class ZDocNode2Html {
         sb.append("</pre>");
     }
 
-    private void joinEle(StringBuilder sb, ZDocEle ele, Rendering ing) {
-        ing.charCount += ele.text().length();
+    private boolean joinEle(StringBuilder sb, ZDocEle ele, Rendering ing) {
         switch (ele.type()) {
         case INLINE:
         case SUP:
         case SUB:
-            eleAsInline(sb, ele);
+            eleAsInline(sb, ele, ing);
             break;
         case QUOTE:
             eleAsQuote(sb, ele);
             break;
         case IMG:
-            eleAsImg(sb, ele);
+            eleAsImg(sb, ele, ing);
             break;
         case BR:
             eleAsBr(sb, ele);
@@ -172,21 +170,32 @@ public class ZDocNode2Html {
         default:
             throw Lang.impossible();
         }
+        return ing.isOutOfLimit();
     }
 
     private void eleAsBr(StringBuilder sb, ZDocEle ele) {
         sb.append("<br>");
     }
 
-    private void eleAsImg(StringBuilder sb, ZDocEle ele) {
+    private void eleAsImg(StringBuilder sb, ZDocEle ele, Rendering ing) {
         if (ele.hasAttr("href")) {
             sb.append("<a href=\"").append(ele.href()).append(">");
         }
         // ....................................................
         ZLinkInfo linfo = ele.linkInfo("src");
         String src = null == linfo ? ele.src() : linfo.link();
-        sb.append("<img src=\"").append(src).append('"');
-        appendAPath(sb, ele, src);
+        String apath = ele.attrString("apath");
+        if (src.toLowerCase().matches("^[a-z]+://.+$")) {
+            sb.append("<img src=\"").append(src).append('"');
+        } else {
+            sb.append("<img src=\"")
+              .append(ing.currentBasePath)
+              .append(apath + "/" + src)
+              .append('"')
+              .append(" apath=\"")
+              .append(apath)
+              .append('"');
+        }
         // ....................................................
         int w = ele.width();
         if (w > 0) {
@@ -210,22 +219,11 @@ public class ZDocNode2Html {
         }
     }
 
-    public void appendAPath(StringBuilder sb, ZDocEle ele, String link) {
-        if (null != link && !link.toLowerCase().matches("^[a-z]+://.+$")) {
-            String apath = ele.attrString("apath");
-            if (!Strings.isBlank(apath)) {
-                apath += "/" + link;
-                apath = Disks.getCanonicalPath(apath);
-                sb.append(" apath=\"").append(apath).append('"');
-            }
-        }
-    }
-
     private void eleAsQuote(StringBuilder sb, ZDocEle ele) {
         sb.append("<code>").append(ele.text()).append("</code>");
     }
 
-    private void eleAsInline(StringBuilder sb, ZDocEle ele) {
+    private void eleAsInline(StringBuilder sb, ZDocEle ele, Rendering ing) {
         // 要生成的标签
         ArrayList<String> tagNames = new ArrayList<String>(10);
         if (ele.hasAttr("href")) {
@@ -262,8 +260,19 @@ public class ZDocNode2Html {
             if (ele.hasAttr("href")) {
                 linfo = ele.linkInfo("href");
                 String href = null == linfo ? ele.href() : linfo.link();
-                sb.append(" href=\"").append(href).append("\"");
-                appendAPath(sb, ele, href);
+                String apath = ele.attrString("apath");
+
+                if (href.toLowerCase().matches("^[a-z]+://.+$")) {
+                    sb.append(" href=\"").append(href).append('"');
+                } else {
+                    sb.append(" href=\"")
+                      .append(ing.currentBasePath)
+                      .append(apath + "/" + href)
+                      .append('"')
+                      .append(" apath=\"")
+                      .append(apath)
+                      .append('"');
+                }
             }
             if (sbStyle.length() > 0) {
                 sb.append(" style=\"").append(sbStyle).append("\"");
@@ -278,7 +287,22 @@ public class ZDocNode2Html {
         }
         // ....................................................
         // 输出内容
-        sb.append(ele.text());
+        if (ing.limit <= 0) {
+            sb.append(ele.text());
+        }
+        // 有限制（为了输出文档摘要）
+        else {
+            int len = ing.limit - ing.charCount;
+            if (len > 0) {
+                String txt = ele.text();
+                if (len > txt.length()) {
+                    sb.append(txt);
+                } else {
+                    sb.append(txt.substring(0, len)).append(" ... ");
+                }
+                ing.charCount += txt.length();
+            }
+        }
         // ....................................................
         // 输出结束标签
         for (int i = tagNames.size() - 1; i >= 0; i--) {
@@ -289,7 +313,8 @@ public class ZDocNode2Html {
 
     private void joinEles(StringBuilder sb, ZDocNode nd, Rendering ing) {
         for (ZDocEle ele : nd.eles()) {
-            joinEle(sb, ele, ing);
+            if (joinEle(sb, ele, ing))
+                break;
         }
     }
 
