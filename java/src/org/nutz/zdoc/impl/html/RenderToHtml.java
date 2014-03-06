@@ -104,26 +104,26 @@ public class RenderToHtml extends RenderTo {
                     }
                 });
 
+                // 创建页面全局上下文
+                NutMap page = new NutMap();
+                page.setv("bpath", zi.bpath());
+                page.setv("title", zi.title());
+                
+                
                 // 创建渲染上下文
-                NutMap map = new NutMap();
+                NutMap doc = zi.toMap();
                 if (null != zi.docRoot()) {
                     for (String key : zi.docRoot().attrs().keys()) {
-                        map.put(key, zi.docRoot().attrs().get(key));
+                        doc.put(key, zi.docRoot().attrs().get(key));
                     }
                 }
-                map.put("authors", zi.authorsListMap());
-                map.put("verifiers", zi.verifiersListMap());
-                map.put("title", zi.title());
-                map.put("tags", zi.tags());
-                map.put("lm", zi.lm());
-                map.put("rpath", zi.rpath());
-                map.put("bpath", zi.bpath());
+                
 
                 // 根据 zDoc 文档将其转换成 HTML 字符串
                 ing.currentBasePath = zi.bpath();
                 StringBuilder sb = new StringBuilder();
                 joinDoc(sb, zi.docRoot(), ing);
-                map.put("content", sb.toString());
+                doc.put("content", sb.toString());
 
                 // 生成文档摘要
                 ing.currentBasePath = "../";
@@ -131,8 +131,8 @@ public class RenderToHtml extends RenderTo {
                 joinBrief(sb, zi.docRoot(), ing);
                 zi.briefHtml(sb.toString());
 
-                // 主上下文
-                ing.context().put("doc", map);
+                // 添加到上下文中
+                ing.context().setv("doc", doc).setv("page", page);
 
                 // 得到文档模板对象
                 ZDocRule rule = checkRule(rph);
