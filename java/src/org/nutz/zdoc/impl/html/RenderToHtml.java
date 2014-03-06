@@ -164,7 +164,7 @@ public class RenderToHtml extends RenderTo {
             ZDocTemplate tmpl = ing.tfa().getTemplte(rule.key());
 
             NutMap page = new NutMap();
-            page.setv("bpath", "..");
+            page.setv("bpath", "../");
             ing.context().setv("page", page);
             Map<String, ZDocTag> tags = ing.context().getAs("tags", Map.class);
             for (ZDocTag tag : tags.values()) {
