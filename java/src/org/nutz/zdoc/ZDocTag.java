@@ -29,6 +29,10 @@ public class ZDocTag {
         this.genKey();
     }
 
+    public String toString() {
+        return key + ":" + text;
+    }
+
     public String getKey() {
         return key;
     }

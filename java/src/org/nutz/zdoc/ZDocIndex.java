@@ -36,7 +36,7 @@ public class ZDocIndex extends SimpleNode<ZFile> implements
 
     private String briefHtml;
 
-    private List<String> tags;
+    private List<ZDocTag> tags;
 
     private Date lm;
 
@@ -47,7 +47,7 @@ public class ZDocIndex extends SimpleNode<ZFile> implements
     public ZDocIndex() {
         authors = new LinkedList<ZDocAuthor>();
         verifiers = new LinkedList<ZDocAuthor>();
-        tags = new LinkedList<String>();
+        tags = new LinkedList<ZDocTag>();
     }
 
     public String toString() {
@@ -58,6 +58,7 @@ public class ZDocIndex extends SimpleNode<ZFile> implements
         NutMap map = new NutMap();
         map.setv("title", title);
         map.setv("path", path);
+        map.setv("tags", tags);
         map.setv("authors", this.authorsListMap());
         map.setv("verifiers", this.verifiersListMap());
         map.setv("lm", lm);
@@ -260,13 +261,13 @@ public class ZDocIndex extends SimpleNode<ZFile> implements
         return this;
     }
 
-    public List<String> tags() {
+    public List<ZDocTag> tags() {
         return tags;
     }
 
-    public ZDocIndex tags(List<String> tags) {
-        this.tags = tags;
-        return this;
+    public void addTag(ZDocTag tag) {
+        if (null != tag)
+            tags.add(tag);
     }
 
     public Date lm() {

@@ -218,25 +218,23 @@ public class ZDocHome {
 
                     // 检查标签
                     if (!zi.file().name().startsWith("README.")) {
-                        Object tagList = attrs.get("tags");
-                        if (null != tagList) {
-                            if (tagList instanceof List) {
-                                zi.tags((List<String>) tagList);
-                            } else {
-                                throw Lang.impossible();
-                            }
-                        }
+                        List<String> tagList = (List<String>) attrs.get("tags");
+
                         boolean isOneInTops = false;
-                        for (String str : zi.tags()) {
-                            if (!isOneInTops) {
-                                isOneInTops = Lang.contains(topTags, str);
+                        if (null != tagList) {
+                            for (String str : tagList) {
+                                if (!isOneInTops) {
+                                    isOneInTops = Lang.contains(topTags, str);
+                                }
+                                ZDocTag tag = tags.get(str);
+                                if (null == tag) {
+                                    tag = new ZDocTag().setText(str).genKey();
+                                    tags.put(str, tag);
+                                }
+                                tag.increaseCount().addzDocIndex(zi);
+                                // 记录到文档索引中
+                                zi.addTag(tag);
                             }
-                            ZDocTag tag = tags.get(str);
-                            if (null == tag) {
-                                tag = new ZDocTag().setText(str).genKey();
-                                tags.put(str, tag);
-                            }
-                            tag.increaseCount().addzDocIndex(zi);
                         }
                         // 如果没有顶级标签，则附加上其他标签
                         if (!isOneInTops) {

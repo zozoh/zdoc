@@ -108,16 +108,17 @@ public class RenderToHtml extends RenderTo {
                 NutMap page = new NutMap();
                 page.setv("bpath", zi.bpath());
                 page.setv("title", zi.title());
-                
-                
+
                 // 创建渲染上下文
                 NutMap doc = zi.toMap();
                 if (null != zi.docRoot()) {
                     for (String key : zi.docRoot().attrs().keys()) {
+                        // tags 标签需要跳过，因为之前已经被处理成 ZDocTag 对象了
+                        if ("tags".equals(key))
+                            continue;
                         doc.put(key, zi.docRoot().attrs().get(key));
                     }
                 }
-                
 
                 // 根据 zDoc 文档将其转换成 HTML 字符串
                 ing.currentBasePath = zi.bpath();
@@ -177,10 +178,10 @@ public class RenderToHtml extends RenderTo {
         }
     }
 
-    public void _gen_tag_page(Rendering ing,
-                              ZDocTemplate tmpl,
-                              NutMap page,
-                              ZDocTag tag) {
+    private void _gen_tag_page(Rendering ing,
+                               ZDocTemplate tmpl,
+                               NutMap page,
+                               ZDocTag tag) {
         page.setv("title", tag.getText());
         ing.context().setv("tag", tag.genItems());
 

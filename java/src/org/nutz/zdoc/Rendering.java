@@ -8,13 +8,17 @@ public class Rendering {
     public int charCount;
 
     public int limit;
-    
+
     public String currentBasePath;
 
     public boolean isOutOfLimit() {
         if (limit <= 0)
             return false;
         return charCount > limit;
+    }
+
+    public boolean hasLimit() {
+        return limit > 0;
     }
 
     /**

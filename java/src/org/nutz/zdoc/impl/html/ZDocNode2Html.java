@@ -92,7 +92,7 @@ public class ZDocNode2Html {
 
     private void nodeAsHr(StringBuilder sb, ZDocNode nd, Rendering ing) {
         _join_newline_of_node(sb, nd, ing);
-        sb.append("<hr>");
+        sb.append("<div class=\"doc-hr\"></div>");
     }
 
     private void nodeAsComment(StringBuilder sb, ZDocNode nd, Rendering ing) {
@@ -178,6 +178,8 @@ public class ZDocNode2Html {
     }
 
     private void eleAsImg(StringBuilder sb, ZDocEle ele, Rendering ing) {
+        if (ing.hasLimit())
+            return;
         if (ele.hasAttr("href")) {
             sb.append("<a href=\"").append(ele.href()).append(">");
         }
@@ -185,6 +187,7 @@ public class ZDocNode2Html {
         ZLinkInfo linfo = ele.linkInfo("src");
         String src = null == linfo ? ele.src() : linfo.link();
         String apath = ele.attrString("apath");
+        sb.append("<div class=\"doc-img\">");
         if (src.toLowerCase().matches("^[a-z]+://.+$")) {
             sb.append("<img src=\"").append(src).append('"');
         } else {
@@ -213,6 +216,7 @@ public class ZDocNode2Html {
         } else {
             sb.append(">");
         }
+        sb.append("</div>");
         // ....................................................
         if (ele.hasAttr("href")) {
             sb.append("</a>");
