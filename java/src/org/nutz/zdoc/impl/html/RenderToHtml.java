@@ -13,7 +13,6 @@ import org.nutz.lang.util.NutMap;
 import org.nutz.lang.util.Tag;
 import org.nutz.log.Log;
 import org.nutz.log.Logs;
-import org.nutz.vfs.ZDir;
 import org.nutz.vfs.ZFile;
 import org.nutz.vfs.ZIO;
 import org.nutz.zdoc.RenderTo;
@@ -44,23 +43,9 @@ public class RenderToHtml extends RenderTo {
                 // 获得相对路径
                 final String rph = zi.rpath();
 
-                // 如果是目录，则 copy 全部的资源文件
+                // 如果是目录，则忽略
                 if (zf.isDir()) {
-                    ZDir zdir = (ZDir) zf;
-                    List<ZFile> imgs = zdir.lsFile("[.](png|gif|jpg|jpeg)",
-                                                   true);
-                    if (!imgs.isEmpty()) {
-                        log.infof("copy all %d images under : %s",
-                                  imgs.size(),
-                                  rph);
-
-                        for (ZFile img : imgs) {
-                            String imgrph = rph + "/" + img.name();
-                            log.info(" ++ " + imgrph);
-                            ZFile destImg = dest.createFileIfNoExists(imgrph);
-                            img.copyTo(ing.io(), ing.io(), destImg);
-                        }
-                    }
+                    // TODO 这里是一个生成 README 的好地方
                     return;
                 }
 
@@ -87,7 +72,8 @@ public class RenderToHtml extends RenderTo {
                                 if (!src.startsWith("http://")) {
                                     ZFile imgf = zf.parent().get(src);
                                     if (null == imgf) {
-                                        log.warnf("  !!! img no found '%s'", src);
+                                        log.warnf("  !!! img no found '%s'",
+                                                  src);
                                     } else {
                                         String oph = _aph + "/" + src;
                                         ing.medias.put(oph, imgf);
