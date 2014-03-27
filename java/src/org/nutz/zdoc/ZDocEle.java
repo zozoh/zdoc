@@ -168,11 +168,20 @@ public class ZDocEle {
         return Json.toJson(attrs.getInnerMap(), JsonFormat.compact());
     }
 
-    public ZLinkInfo linkInfo(String by) {
-        String key = attrString(by);
+    public ZLinkInfo linkInfo(String attrName) {
+        String key = attrString(attrName);
         if (null != key && key.startsWith("$"))
             return myNode.root().links().get(key.substring(1));
         return null;
+    }
+
+    public String linkInfoString(String attrName) {
+        String key = attrString(attrName);
+        if (null != key && key.startsWith("$")) {
+            ZLinkInfo link = myNode.root().links().get(key.substring(1));
+            return null == link ? key : link.link();
+        }
+        return key;
     }
 
     public String href() {

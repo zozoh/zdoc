@@ -147,7 +147,7 @@ public class ZDocNode2Html {
         sb.append("<pre code-type=\""
                   + nd.attrs().getString("code-type", "unknown")
                   + "\">\n");
-        sb.append(nd.text());
+        sb.append(nd.text().replace("<", "&lt;"));
         sb.append("</pre>");
     }
 
@@ -299,12 +299,14 @@ public class ZDocNode2Html {
             int len = ing.limit - ing.charCount;
             if (len > 0) {
                 String txt = ele.text();
-                if (len > txt.length()) {
-                    sb.append(txt);
-                } else {
-                    sb.append(txt.substring(0, len)).append(" ... ");
+                if (null != txt) {
+                    if (len > txt.length()) {
+                        sb.append(txt);
+                    } else {
+                        sb.append(txt.substring(0, len)).append(" ... ");
+                    }
+                    ing.charCount += txt.length();
                 }
-                ing.charCount += txt.length();
             }
         }
         // ....................................................

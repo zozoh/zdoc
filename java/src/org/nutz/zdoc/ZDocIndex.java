@@ -2,11 +2,13 @@ package org.nutz.zdoc;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.nutz.lang.Each;
 import org.nutz.lang.Files;
+import org.nutz.lang.Lang;
 import org.nutz.lang.Strings;
 import org.nutz.lang.util.Callback;
 import org.nutz.lang.util.Node;
@@ -29,6 +31,8 @@ public class ZDocIndex extends SimpleNode<ZFile> implements
     private List<ZDocAuthor> verifiers;
 
     private String path;
+
+    private String docBase;
 
     private ZDocNode docRoot;
 
@@ -221,6 +225,15 @@ public class ZDocIndex extends SimpleNode<ZFile> implements
         return this;
     }
 
+    public String docBase() {
+        return docBase == null ? path : docBase;
+    }
+
+    public ZDocIndex docBase(String docBase) {
+        this.docBase = docBase;
+        return this;
+    }
+
     public ZFile file() {
         return this.get();
     }
@@ -279,22 +292,43 @@ public class ZDocIndex extends SimpleNode<ZFile> implements
         return this;
     }
 
+    public ZDocIndex lm(long lm) {
+        this.lm = new Date(lm);
+        return this;
+    }
+
     public String rpath() {
+        if (null == rpath) {
+            List<ZDocIndex> ans = this.ancestors();
+            List<String> ss = new ArrayList<String>(ans.size());
+            Iterator<ZDocIndex> it = ans.iterator();
+            if (it.hasNext()) {
+                it.next(); // 忽略第一个
+                while (it.hasNext())
+                    ss.add(it.next().path());
+
+            }
+            ss.add(file().name());
+            rpath = Lang.concat("/", ss).toString();
+        }
         return rpath;
     }
 
-    public ZDocIndex rpath(String rpath) {
-        this.rpath = rpath;
-        return this;
-    }
-
     public String bpath() {
+        if (null == bpath) {
+            bpath = Strings.dup("../", depth() - 1);
+        }
         return bpath;
     }
 
-    public ZDocIndex bpath(String bpath) {
-        this.bpath = bpath;
-        return this;
+    public ZDocIndex root() {
+        return (ZDocIndex) top();
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public List<ZDocIndex> ancestors() {
+        List list = parents();
+        return list;
     }
 
     @Override

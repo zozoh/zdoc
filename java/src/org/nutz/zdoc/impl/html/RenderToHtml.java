@@ -39,10 +39,10 @@ public class RenderToHtml extends RenderTo {
         // 转换文档
         log.info("walk docs ...");
         index.walk(new Callback<ZDocIndex>() {
-            public void invoke(ZDocIndex zi) {
-                ZFile zf = zi.file();
+            public void invoke(final ZDocIndex zi) {
+                final ZFile zf = zi.file();
                 // 获得相对路径
-                String rph = zi.rpath();
+                final String rph = zi.rpath();
 
                 // 如果是目录，则 copy 全部的资源文件
                 if (zf.isDir()) {
@@ -55,7 +55,7 @@ public class RenderToHtml extends RenderTo {
                                   rph);
 
                         for (ZFile img : imgs) {
-                            String imgrph = src.relative(img);
+                            String imgrph = rph + "/" + img.name();
                             log.info(" ++ " + imgrph);
                             ZFile destImg = dest.createFileIfNoExists(imgrph);
                             img.copyTo(ing.io(), ing.io(), destImg);
@@ -83,6 +83,16 @@ public class RenderToHtml extends RenderTo {
                             // IMG
                             if (ZDocEleType.IMG == ele.type()) {
                                 ele.attr("apath", _aph);
+                                String src = ele.linkInfoString("src");
+                                if (!src.startsWith("http://")) {
+                                    ZFile imgf = zf.parent().get(src);
+                                    if (null == imgf) {
+                                        log.warnf("  !!! img no found '%s'", src);
+                                    } else {
+                                        String oph = _aph + "/" + src;
+                                        ing.medias.put(oph, imgf);
+                                    }
+                                }
                             }
                             // LINK
                             else {
@@ -154,6 +164,7 @@ public class RenderToHtml extends RenderTo {
         genIndexPage(ing);
         // 生成标签页面
         genTagPages(ing);
+
     }
 
     @SuppressWarnings("unchecked")
@@ -204,6 +215,14 @@ public class RenderToHtml extends RenderTo {
             ZFile zfDest = rs.isDir() ? dest.createDirIfNoExists(rph)
                                      : dest.createFileIfNoExists(rph);
             rs.copyTo(ing.io(), ing.io(), zfDest);
+        }
+        log.info("copy images ...");
+        for (Map.Entry<String, ZFile> en : ing.medias.entrySet()) {
+            String destPath = en.getKey();
+            ZFile imgf = en.getValue();
+            log.info(" ++ " + destPath);
+            ZFile zfDest = dest.createFileIfNoExists(destPath);
+            imgf.copyTo(ing.io(), ing.io(), zfDest);
         }
     }
 
@@ -263,8 +282,7 @@ public class RenderToHtml extends RenderTo {
             Tag tag = Tag.tag("li", ".doc-index-item");
 
             // 获得相对路径
-            ZFile zf = zi.file();
-            String rph = src.relative(zf);
+            String rph = zi.rpath();
             String oph = Files.renameSuffix(rph, ".html");
 
             // 生成链接标签

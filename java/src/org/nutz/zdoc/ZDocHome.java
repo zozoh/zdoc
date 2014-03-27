@@ -28,7 +28,6 @@ import org.nutz.vfs.ZIO;
 import org.nutz.zdoc.impl.MdParser;
 import org.nutz.zdoc.impl.ZDocParser;
 import org.nutz.zdoc.util.ZD;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 public class ZDocHome {
@@ -153,15 +152,10 @@ public class ZDocHome {
         }
 
         // 解析索引
-        ZFile indexml = src.getFile("index.xml");
-        // 根据原生目录结构
-        if (null == indexml) {
-            _read_index_by_native();
-        }
-        // 根据给定的 XML 文件
-        else {
-            _read_index_by_xml(indexml);
-        }
+        // _read_index();
+        index.file(src).title(src.name()).lm(src.lastModified());
+        _read_index(index, src);
+
         // 开始逐个分析文档
         log.info("walking docs ...");
 
@@ -179,9 +173,6 @@ public class ZDocHome {
                 if (!zf.isFile())
                     return;
                 String rph = src.relative(zf);
-
-                zi.rpath(rph);
-                zi.bpath(Strings.dup("../", zi.depth() - 1));
                 zi.lm(Times.D(zf.lastModified()));
 
                 // ZDoc
@@ -279,65 +270,70 @@ public class ZDocHome {
         return index;
     }
 
-    private void _read_index_by_native() {
-        for (ZFile topf : src.ls(null, true)) {
-            // 忽略第一层特殊的目录
-            if (topIgnores.contains(topf.name()))
-                continue;
-            // 目录或者特殊的文件类型会被纳入索引
-            if (topf.isDir() || topf.matchType("^zdoc|man|md|markdown|html?$")) {
-                ZDocIndex topzi = new ZDocIndex().parent(index);
-                _read_index_by_native(topf, topzi);
-            }
-        }
-    }
+    private void _read_index(ZDocIndex zi, ZDir d) {
+        ZFile xml = d.getFile("index.xml");
+        // 根据原生目录结构
+        if (null == xml) {
+            // 循环子目录
+            for (ZFile f : d.ls(null, true)) {
+                String path = src.relative(f);
+                if (topIgnores.contains(path))
+                    continue;
 
-    private void _read_index_by_native(ZFile zf, ZDocIndex zi) {
-        zi.file(zf);
-        if (zf.isDir()) {
-            for (ZFile subf : ((ZDir) zf).ls(null, true)) {
                 // 目录或者特殊的文件类型会被纳入索引
-                if (subf.isDir()
-                    || subf.matchType("^zdoc|man|md|markdown|html?$")) {
-                    ZDocIndex subzi = new ZDocIndex().parent(zi);
-                    _read_index_by_native(subf, subzi);
+                if (f.isDir()) {
+                    ZDocIndex zi2 = new ZDocIndex().parent(zi)
+                                                   .file(f)
+                                                   .path(f.name())
+                                                   .title(f.name())
+                                                   .lm(f.lastModified());
+                    _read_index(zi2, (ZDir) f);
                 }
+                // 如果是文件直接记录
+                else if (f.isFile()
+                         && f.matchType("^zdoc|man|md|markdown|html?$")) {
+                    new ZDocIndex().parent(zi)
+                                   .file(f)
+                                   .path(f.name())
+                                   .title(f.name())
+                                   .lm(f.lastModified());
+                }
+
             }
         }
-    }
+        // 根据给定的 XML 文件
+        else {
+            Element root = Xmls.xml(io.read(xml)).getDocumentElement();
+            _read_index_from_element(zi, d, root);
 
-    private void _read_index_by_xml(ZFile indexml) {
-        try {
-            Document doc = Lang.xmls().parse(io.read(indexml));
-            Element root = doc.getDocumentElement();
-            _read_index_by_XmlElement(src, root, index);
-        }
-        catch (Exception e) {
-            throw Lang.wrapThrow(e);
         }
     }
 
-    private void _read_index_by_XmlElement(ZFile zf, Element ele, ZDocIndex zi) {
+    private void _read_index_from_element(ZDocIndex zi, ZFile zf, Element ele) {
         // 设置自身的值
-        zi.file(zf);
-        zi.author(Xmls.getAttr(ele, "author"));
-        String title = Xmls.getAttr(ele, "title");
-        if (!Strings.isBlank(title))
-            zi.title(title);
+        zi.file(zf)
+          .author(Xmls.getAttr(ele, "author"))
+          .title(Xmls.getAttr(ele, "title"));
 
-        // 判断是否有子
-        List<Element> subeles = Xmls.children(ele, "doc");
-        if (!subeles.isEmpty() && !zf.isDir()) {
+        // 判断一下 ...
+        List<Element> children = Xmls.children(ele, "doc");
+        // 如果元素有子元素，那么必定希望对应的是个目录
+        if (!children.isEmpty() && !zf.isDir()) {
             throw Lang.makeThrow("'%s' should be a DIR!", zf.path());
+        }
+        // 如果元素木有子元素，但是对应一个目录，那么就直接搜索这个目录
+        else if (children.isEmpty() && zf.isDir()) {
+            _read_index(zi, (ZDir) zf);
         }
 
         // 循环子节点
-        for (Element subele : subeles) {
-            ZDocIndex subzi = new ZDocIndex();
-            subzi.parent(zi);
-            subzi.path(Xmls.getAttr(subele, "path"));
-            ZFile subf = ((ZDir) zf).check(subzi.path());
-            _read_index_by_XmlElement(subf, subele, subzi);
+        for (Element ele2 : children) {
+            ZDocIndex zi2 = new ZDocIndex();
+            zi2.parent(zi)
+               .path(Xmls.getAttr(ele2, "path"))
+               .docBase(Xmls.getAttr(ele2, "doc-base"));
+            ZFile zf2 = ((ZDir) zf).check(zi2.docBase());
+            _read_index_from_element(zi2, zf2, ele2);
         }
     }
 
