@@ -59,20 +59,24 @@ public class ZDocIndex extends SimpleNode<ZFile> implements
         return toString(0);
     }
 
+    private NutMap _map;
+
     public NutMap toMap() {
-        NutMap map = new NutMap();
-        map.setv("title", title);
-        map.setv("path", path);
-        map.setv("tags", tags);
-        map.setv("authors", this.authorsListMap());
-        map.setv("verifiers", this.verifiersListMap());
-        map.setv("lm", lm);
-        map.setv("rawText", rawTex);
-        map.setv("briefHtml", briefHtml);
-        map.setv("rpath", rpath);
-        map.setv("bpath", bpath);
-        map.setv("rTargetPath", Files.renameSuffix(rpath, ".html"));
-        return map;
+        if (_map == null) {
+            _map = new NutMap();
+            _map.setv("title", title)
+                .setv("path", path)
+                .setv("tags", tags)
+                .setv("authors", this.authorsListMap())
+                .setv("verifiers", this.verifiersListMap())
+                .setv("lm", lm)
+                .setv("rawText", rawTex)
+                .setv("briefHtml", briefHtml)
+                .setv("rpath", rpath)
+                .setv("bpath", bpath)
+                .setv("rTargetPath", Files.renameSuffix(rpath, ".html"));
+        }
+        return _map;
     }
 
     public String toString(int indent) {

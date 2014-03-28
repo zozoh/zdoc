@@ -41,7 +41,7 @@ public class RenderToHtml extends RenderTo {
             public void invoke(final ZDocIndex zi) {
                 final ZFile zf = zi.file();
                 int depth = zi.depth();
-                
+
                 // 获得相对路径
                 final String rph = zi.rpath();
 
@@ -115,6 +115,12 @@ public class RenderToHtml extends RenderTo {
                 page.setv("treeName", htmlIndexPath);
                 page.setv("treeDepth", htmlIndexDepth);
 
+                // 生成文档摘要
+                ing.currentBasePath = "../";
+                StringBuilder sb = new StringBuilder();
+                joinBrief(sb, zi.docRoot(), ing);
+                zi.briefHtml(sb.toString());
+
                 // 创建渲染上下文
                 NutMap doc = zi.toMap();
                 if (null != zi.docRoot()) {
@@ -128,15 +134,9 @@ public class RenderToHtml extends RenderTo {
 
                 // 根据 zDoc 文档将其转换成 HTML 字符串
                 ing.currentBasePath = zi.bpath();
-                StringBuilder sb = new StringBuilder();
+                sb = new StringBuilder();
                 joinDoc(sb, zi.docRoot(), ing);
                 doc.put("content", sb.toString());
-
-                // 生成文档摘要
-                ing.currentBasePath = "../";
-                sb = new StringBuilder();
-                joinBrief(sb, zi.docRoot(), ing);
-                zi.briefHtml(sb.toString());
 
                 // 添加到上下文中
                 ing.context().setv("doc", doc).setv("page", page);
