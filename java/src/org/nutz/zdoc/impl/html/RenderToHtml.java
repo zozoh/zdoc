@@ -40,11 +40,18 @@ public class RenderToHtml extends RenderTo {
         index.walk(new Callback<ZDocIndex>() {
             public void invoke(final ZDocIndex zi) {
                 final ZFile zf = zi.file();
+                int depth = zi.depth();
+                
                 // 获得相对路径
                 final String rph = zi.rpath();
 
                 // 如果是目录，则忽略
                 if (zf.isDir()) {
+                    // 生成索引
+                    if (depth == htmlIndexDepth) {
+                        genIndexPage(ing, zi);
+                    }
+
                     // TODO 这里是一个生成 README 的好地方
                     return;
                 }
@@ -104,6 +111,9 @@ public class RenderToHtml extends RenderTo {
                 NutMap page = new NutMap();
                 page.setv("bpath", zi.bpath());
                 page.setv("title", zi.title());
+                page.setv("depth", depth);
+                page.setv("treeName", htmlIndexPath);
+                page.setv("treeDepth", htmlIndexDepth);
 
                 // 创建渲染上下文
                 NutMap doc = zi.toMap();
@@ -146,8 +156,6 @@ public class RenderToHtml extends RenderTo {
         });
         // 拷贝资源
         copyResources(ing);
-        // 生成索引
-        genIndexPage(ing);
         // 生成标签页面
         genTagPages(ing);
 
@@ -212,16 +220,18 @@ public class RenderToHtml extends RenderTo {
         }
     }
 
-    private void genIndexPage(final Rendering ing) {
+    private void genIndexPage(final Rendering ing, final ZDocIndex base) {
         if (!Strings.isBlank(this.htmlIndexPath)) {
-            log.infof("make index >> %s", htmlIndexPath);
+            String oph = base.rpath() + "/" + htmlIndexPath;
+
+            log.infof("++++++++++++++++ make index : %s", oph);
 
             final Tag tag = Tag.tag("ol", ".zdoc-index-container");
-            index.eachChild(new Each<ZDocIndex>() {
+            base.eachChild(new Each<ZDocIndex>() {
                 public void invoke(int index, ZDocIndex zi, int length) {
                     if (zi.file().name().startsWith("README."))
                         return;
-                    joinIndexTag(tag, zi);
+                    joinIndexTag(tag, base, zi);
                 }
             });
 
@@ -233,7 +243,7 @@ public class RenderToHtml extends RenderTo {
             ZDocTemplate tmpl = ing.tfa().getTemplte(rule.key());
 
             // 在目标目录创建对应文件
-            ZFile destf = dest.createFileIfNoExists(htmlIndexPath);
+            ZFile destf = dest.createFileIfNoExists(oph);
 
             // 准备渲染
             Writer wr = Streams.utf8w(ing.io().openOutputStream(destf));
@@ -245,7 +255,7 @@ public class RenderToHtml extends RenderTo {
         }
     }
 
-    private void joinIndexTag(Tag p, ZDocIndex zi) {
+    private void joinIndexTag(Tag p, final ZDocIndex base, ZDocIndex zi) {
         // 如果还有子节点
         if (zi.hasChild()) {
             Tag tag = Tag.tag("li", ".zdoc-index-node");
@@ -257,7 +267,7 @@ public class RenderToHtml extends RenderTo {
                 public void invoke(int index, ZDocIndex child, int length) {
                     if (child.file().name().startsWith("README."))
                         return;
-                    joinIndexTag(sub, child);
+                    joinIndexTag(sub, base, child);
                 }
             });
             // 加入到树中
@@ -268,7 +278,7 @@ public class RenderToHtml extends RenderTo {
             Tag tag = Tag.tag("li", ".doc-index-item");
 
             // 获得相对路径
-            String rph = zi.rpath();
+            String rph = zi.rpath(base);
             String oph = Files.renameSuffix(rph, ".html");
 
             // 生成链接标签

@@ -1,6 +1,7 @@
 package org.nutz.zdoc;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -136,6 +137,9 @@ public class ZDocIndex extends SimpleNode<ZFile> implements
     @Override
     public ZDocIndex parent(Node<ZFile> node) {
         super.parent(node);
+        // 清空 rpath
+        this.rpath = null;
+        this.bpath = null;
         return this;
     }
 
@@ -222,6 +226,8 @@ public class ZDocIndex extends SimpleNode<ZFile> implements
 
     public ZDocIndex path(String path) {
         this.path = path;
+        // 清空 rpath
+        this.rpath = null;
         return this;
     }
 
@@ -244,6 +250,8 @@ public class ZDocIndex extends SimpleNode<ZFile> implements
         if (Strings.isBlank(title())) {
             title(Files.getMajorName(file.path()));
         }
+        // 清空 rpath
+        this.rpath = null;
         return this;
     }
 
@@ -299,19 +307,35 @@ public class ZDocIndex extends SimpleNode<ZFile> implements
 
     public String rpath() {
         if (null == rpath) {
-            List<ZDocIndex> ans = this.ancestors();
-            List<String> ss = new ArrayList<String>(ans.size());
-            Iterator<ZDocIndex> it = ans.iterator();
-            if (it.hasNext()) {
-                it.next(); // 忽略第一个
-                while (it.hasNext())
-                    ss.add(it.next().path());
-
-            }
-            ss.add(file().name());
-            rpath = Lang.concat("/", ss).toString();
+            rpath = rpath(null);
         }
         return rpath;
+    }
+
+    /**
+     * 获得相对于某个父节点的相对路径
+     * 
+     * @param zi
+     *            父节点
+     * @return 相对路径
+     */
+    public String rpath(ZDocIndex zi) {
+        List<ZDocIndex> ans = this.ancestors();
+        Collections.reverse(ans);
+        LinkedList<String> ss = new LinkedList<String>();
+        Iterator<ZDocIndex> it = ans.iterator();
+        while (it.hasNext()) {
+            ZDocIndex an = it.next();
+            // 最后一个是根节点，忽略它
+            if (!it.hasNext())
+                break;
+            if (zi == an)
+                break;
+            ss.addFirst(an.path());
+        }
+
+        ss.add(path());
+        return Lang.concat("/", ss).toString();
     }
 
     public String bpath() {

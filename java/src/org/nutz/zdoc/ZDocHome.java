@@ -8,6 +8,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.nutz.am.AmFactory;
 import org.nutz.cache.ZCache;
@@ -53,6 +55,8 @@ public class ZDocHome {
     protected ZDocIndex index;
 
     protected String htmlIndexPath;
+
+    protected int htmlIndexDepth;
 
     protected Map<String, ZDocTag> tags;
 
@@ -131,7 +135,22 @@ public class ZDocHome {
             _read_vars(pp);
 
             // 读取其他配置字段
-            htmlIndexPath = pp.get("zdoc-html-index-path", null);
+            htmlIndexPath = pp.trim("zdoc-html-index-path", null);
+            if (Strings.isEmpty(htmlIndexPath)) {
+                htmlIndexDepth = -1;
+            } else {
+                Matcher m = Pattern.compile("^(([*][/])+)(.*)$")
+                                   .matcher(htmlIndexPath);
+                if (m.find()) {
+                    htmlIndexDepth = m.group(1).length() / 2;
+                    htmlIndexPath = Strings.trim(m.group(3));
+                } else {
+                    htmlIndexDepth = 0;
+                }
+            }
+            log.infof("htmlIndexPath : %s : depth=%d",
+                      htmlIndexPath,
+                      htmlIndexDepth);
 
             // 读取忽略的顶级目录
             String[] ss = Strings.splitIgnoreBlank(pp.get("zdoc-topIgnore"));
@@ -182,12 +201,12 @@ public class ZDocHome {
                 ZFile zf = zi.file();
                 if (!zf.isFile())
                     return;
-                String rph = src.relative(zf);
+                String showPh = src.relative(zf);
                 zi.lm(Times.D(zf.lastModified()));
 
                 // ZDoc
                 if (zf.matchType("^zdoc|man$")) {
-                    log.infof("zdoc: %s", rph);
+                    log.infof("zdoc: %s", showPh);
                     Parsing ing = new Parsing(io.readString(zf));
                     ing.rootAmName = "zdocParagraph";
                     ing.fa = fa_zdoc;
@@ -196,7 +215,7 @@ public class ZDocHome {
                 }
                 // Markdown
                 else if (zf.matchType("^md|markdown$")) {
-                    log.infof("md: %s", rph);
+                    log.infof("md: %s", showPh);
                     Parsing ing = new Parsing(io.readString(zf));
                     ing.rootAmName = "mdParagraph";
                     ing.fa = fa_md;
@@ -205,7 +224,7 @@ public class ZDocHome {
                 }
                 // HTML
                 else if (zf.matchType("^html?$")) {
-                    log.infof("html: %s", rph);
+                    log.infof("html: %s", showPh);
                     String html = Streams.readAndClose(io.readString(zf));
                     zi.rawTex(html);
                 }
