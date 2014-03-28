@@ -87,6 +87,21 @@ public class ZDocParserTest extends BaseParserTest {
     }
 
     @Test
+    public void test_code_01() {
+        String code = "abc";
+        code += "\n|--|";
+        code += "\nyyy";
+        String s = "{{{<zdoc>\n";
+        s += code;
+        s += "\n}}}";
+
+        ZDocNode root = PS(s);
+
+        _C(root, NODE, 1, "{}", "");
+        _C(root, CODE, 0, "{'code-type':'zdoc'}", code, 0);
+    }
+
+    @Test
     public void test_image_in_link() {
         ZDocNode root = PS("A[a.zdoc <a.png>]B");
         _C(root, NODE, 1, "{}", "");

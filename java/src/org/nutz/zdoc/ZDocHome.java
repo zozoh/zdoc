@@ -115,6 +115,7 @@ public class ZDocHome {
         if (null != fconf) {
             log.infof("read conf : %s", fconf.name());
 
+            topIgnores.clear();
             topIgnores.add(fconf.name());
 
             // 读取配置文件
@@ -132,11 +133,20 @@ public class ZDocHome {
             // 读取其他配置字段
             htmlIndexPath = pp.get("zdoc-html-index-path", null);
 
+            // 读取忽略的顶级目录
+            String[] ss = Strings.splitIgnoreBlank(pp.get("zdoc-topIgnore"));
+            if (null != ss)
+                for (String s : ss) {
+                    topIgnores.add(s);
+                }
+
             // 读取关于标签的配置信息
             tagPath = pp.get("zdoc-tag--path", "tags");
             othersTag.setText(pp.get("zdoc-tag-others", othersTag.getText()));
             topTags = Strings.splitIgnoreBlank(pp.get("zdoc-tag-tops"),
                                                "[,，\n]");
+            if (null == topTags)
+                topTags = new String[0];
 
         }
         // 没有配置文件，则试图给个默认值

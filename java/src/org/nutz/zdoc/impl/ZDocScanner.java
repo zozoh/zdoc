@@ -89,7 +89,7 @@ public class ZDocScanner extends AbstractScanner {
                     int pEnd = line.trimLower().indexOf('>', pBegin);
                     if (pEnd > 0) {
                         block.codeType = Strings.trim(line.trimLower()
-                                                          .substring(pBegin,
+                                                          .substring(pBegin + 1,
                                                                      pEnd));
                     }
                 }

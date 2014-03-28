@@ -187,7 +187,6 @@ public class ZDocNode2Html {
         ZLinkInfo linfo = ele.linkInfo("src");
         String src = null == linfo ? ele.src() : linfo.link();
         String apath = ele.attrString("apath");
-        sb.append("<div class=\"doc-img\">");
         if (src.toLowerCase().matches("^[a-z]+://.+$")) {
             sb.append("<img src=\"").append(src).append('"');
         } else {
@@ -216,7 +215,6 @@ public class ZDocNode2Html {
         } else {
             sb.append(">");
         }
-        sb.append("</div>");
         // ....................................................
         if (ele.hasAttr("href")) {
             sb.append("</a>");
