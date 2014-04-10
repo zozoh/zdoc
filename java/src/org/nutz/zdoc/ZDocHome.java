@@ -301,8 +301,11 @@ public class ZDocHome {
 
     private void _read_index(ZDocIndex zi, ZDir d) {
         ZFile xml = d.getFile("index.xml");
+        Element root = null == xml ? null : Xmls.xml(io.read(xml))
+                                                .getDocumentElement();
+
         // 根据原生目录结构
-        if (null == xml) {
+        if (null == root || !Xmls.hasChild(root, "doc")) {
             // 循环子目录
             for (ZFile f : d.ls(null, true)) {
                 String path = src.relative(f);
@@ -332,7 +335,6 @@ public class ZDocHome {
         }
         // 根据给定的 XML 文件
         else {
-            Element root = Xmls.xml(io.read(xml)).getDocumentElement();
             _read_index_from_element(zi, d, root);
 
         }

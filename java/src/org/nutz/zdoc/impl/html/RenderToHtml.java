@@ -69,43 +69,9 @@ public class RenderToHtml extends RenderTo {
                 // 并对 IMG 和 LINK 都给一个本文档的相对与根的路径
                 // 这样，在渲染的时候，js 端比较容易获得这个路径，以便采用 ajax.load
                 // 的方式组织页面的跳转
-                zi.docRoot().walk(new Callback<ZDocNode>() {
-                    public void invoke(ZDocNode nd) {
-                        for (ZDocEle ele : nd.eles()) {
-                            // IMG
-                            if (ZDocEleType.IMG == ele.type()) {
-                                ele.attr("apath", _aph);
-                                String src = ele.linkInfoString("src");
-                                if (!src.startsWith("http://")) {
-                                    ZFile imgf = zf.parent().get(src);
-                                    if (null == imgf) {
-                                        log.warnf("  !!! img no found '%s'",
-                                                  src);
-                                    } else {
-                                        String oph = _aph + "/" + src;
-                                        ing.medias.put(oph, imgf);
-                                    }
-                                }
-                            }
-                            // LINK
-                            else {
-                                String href = ele.href();
-                                if (Strings.isBlank(href))
-                                    continue;
-
-                                href = href.toLowerCase();
-                                if (href.matches("^[a-z]+://.*$"))
-                                    continue;
-
-                                ele.attr("apath", _aph);
-                                if (href.matches("^(.*)(.zdoc|.man|.md|.markdown)$")) {
-                                    href = Files.renameSuffix(href, ".html");
-                                    ele.href(href);
-                                }
-                            }
-                        }
-                    }
-                });
+                if (null != zi.docRoot()) {
+                    _normalize_links(ing, zi, zf, _aph);
+                }
 
                 // 创建页面全局上下文
                 NutMap page = new NutMap();
@@ -118,7 +84,21 @@ public class RenderToHtml extends RenderTo {
                 // 生成文档摘要
                 ing.currentBasePath = "../";
                 StringBuilder sb = new StringBuilder();
-                joinBrief(sb, zi.docRoot(), ing);
+                // zDoc || markdown
+                if (null != zi.docRoot()) {
+                    joinBrief(sb, zi.docRoot(), ing);
+                }
+                // HTML
+                else if (null != zi.rawTex()) {
+                    sb.append(zi.rawTex()
+                                .substring(0, ing.limit)
+                                .replace("<", "&lt;")
+                                .replace(">", "&gt;"));
+                }
+                // unknown
+                else {
+                    sb.append("???unknown content???");
+                }
                 zi.briefHtml(sb.toString());
 
                 // 创建渲染上下文
@@ -135,7 +115,18 @@ public class RenderToHtml extends RenderTo {
                 // 根据 zDoc 文档将其转换成 HTML 字符串
                 ing.currentBasePath = zi.bpath();
                 sb = new StringBuilder();
-                joinDoc(sb, zi.docRoot(), ing);
+                // zDoc || markdown
+                if (null != zi.docRoot()) {
+                    joinDoc(sb, zi.docRoot(), ing);
+                }
+                // HTML
+                else if (null != zi.rawTex()) {
+                    sb.append(zi.rawTex());
+                }
+                // unknown
+                else {
+                    sb.append("???unknown content???");
+                }
                 doc.put("content", sb.toString());
 
                 // 添加到上下文中
@@ -238,6 +229,13 @@ public class RenderToHtml extends RenderTo {
             ing.context().remove("doc");
             ing.context().put("siteIndexes", tag.toString());
 
+            // 创建页面
+            NutMap page = new NutMap();
+            page.setv("bpath", base.bpath());
+            page.setv("title", base.title());
+            page.setv("depth", base.depth());
+            ing.context().setv("page", page);
+
             // 得到文档模板对象
             ZDocRule rule = checkRule(htmlIndexPath);
             ZDocTemplate tmpl = ing.tfa().getTemplte(rule.key());
@@ -315,6 +313,48 @@ public class RenderToHtml extends RenderTo {
             if (ing.isOutOfLimit())
                 break;
         }
+    }
+
+    void _normalize_links(final Rendering ing,
+                          final ZDocIndex zi,
+                          final ZFile zf,
+                          final String _aph) {
+        zi.docRoot().walk(new Callback<ZDocNode>() {
+            public void invoke(ZDocNode nd) {
+                for (ZDocEle ele : nd.eles()) {
+                    // IMG
+                    if (ZDocEleType.IMG == ele.type()) {
+                        ele.attr("apath", _aph);
+                        String src = ele.linkInfoString("src");
+                        if (!src.startsWith("http://")) {
+                            ZFile imgf = zf.parent().get(src);
+                            if (null == imgf) {
+                                log.warnf("  !!! img no found '%s'", src);
+                            } else {
+                                String oph = _aph + "/" + src;
+                                ing.medias.put(oph, imgf);
+                            }
+                        }
+                    }
+                    // LINK
+                    else {
+                        String href = ele.href();
+                        if (Strings.isBlank(href))
+                            continue;
+
+                        href = href.toLowerCase();
+                        if (href.matches("^[a-z]+://.*$"))
+                            continue;
+
+                        ele.attr("apath", _aph);
+                        if (href.matches("^(.*)(.zdoc|.man|.md|.markdown)$")) {
+                            href = Files.renameSuffix(href, ".html");
+                            ele.href(href);
+                        }
+                    }
+                }
+            }
+        });
     }
 
 }

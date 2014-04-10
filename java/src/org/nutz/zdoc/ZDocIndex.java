@@ -152,7 +152,11 @@ public class ZDocIndex extends SimpleNode<ZFile> implements
     }
 
     public ZDocIndex title(String title) {
-        this.title = title;
+        if (Strings.isBlank(title) && null != file()) {
+            this.title = file().name();
+        } else {
+            this.title = title;
+        }
         return this;
     }
 
@@ -344,7 +348,8 @@ public class ZDocIndex extends SimpleNode<ZFile> implements
 
     public String bpath() {
         if (null == bpath) {
-            bpath = Strings.dup("../", depth() - 1);
+            int depth = depth();
+            bpath = Strings.dup("../", file().isDir() ? depth : depth - 1);
         }
         return bpath;
     }

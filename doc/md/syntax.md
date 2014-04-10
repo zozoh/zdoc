@@ -1,5 +1,6 @@
-zDoc 的语法
-====
+---
+title:zDoc 的语法
+---
 
 > zDoc 是一种 wiki，设计它的目的和 markdown 是一样的。 后来我决定再重写一个解析器，
 > 同时支持 zDoc 和 markdown 这两种语法。由于 markdown 语法偏弱，所以我选择了 

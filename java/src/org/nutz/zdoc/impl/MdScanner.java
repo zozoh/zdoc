@@ -28,7 +28,7 @@ public class MdScanner extends AbstractScanner {
             ZLineType lntp = line.type;
             // ...........................................
             // 看看是否是元数据
-            if (line.trimmed().equals("---")) {
+            if (str.equals("---")) {
                 if (null == parseMeta(ing))
                     break;
                 str = _read_line(ing);
