@@ -1,5 +1,7 @@
 package org.nutz.zdoc;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -8,6 +10,33 @@ import org.nutz.lang.Lang;
 import org.nutz.lang.util.SimpleContext;
 
 public class ZDocAttrs extends SimpleContext {
+
+    /**
+     * 将一个属性获取成字符串列表
+     * 
+     * @param name
+     *            属性名
+     * @return 字符串列表
+     */
+    @SuppressWarnings("unchecked")
+    public List<String> getStringList(String name) {
+        Object obj = this.get(name);
+        if (null == obj)
+            return null;
+        if (obj instanceof List<?>)
+            return (List<String>) obj;
+
+        List<String> list;
+        if (obj instanceof Collection<?>) {
+            Collection<String> col = (Collection<String>) obj;
+            list = new ArrayList<String>(col.size());
+            list.addAll(col);
+        } else {
+            list = new ArrayList<String>(1);
+        }
+        list.add(obj.toString());
+        return list;
+    }
 
     /**
      * 向集合增加一个项目，如果不存在，创建一个 List，如果存在，变成成一个 List

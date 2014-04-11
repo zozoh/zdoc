@@ -1,8 +1,13 @@
-解析-中间数据结构
-====
+---
+title  : zDoc的中间数据结构
+author : zozoh(zozohtnt@gmail.com)
+tags :
+- zDoc
+---
+
 > 世间任何文档，都是相似的
 
-### 如何描述一个文档
+# 如何描述一个文档
 
 抽象的看，任何一个文档都可以下列结构来描述
 
@@ -55,7 +60,7 @@ COMMENT   | 注释
 LINK      | 外部链接对象，记录了对象原始的路径，它的子节点可以是任何一个 ZDocNode
 OBJ       | 嵌入式对象
 
-#### ZDocNode 对象的结构
+## ZDocNode 对象的结构
 
     {
         type    : NODE|…|OBJ,
@@ -69,11 +74,11 @@ OBJ       | 嵌入式对象
 * 一个解析出来的 ZDocNode 树，根节点必定为 `NODE`
 * 根节点的 `attrs` 就是文档的属性
     
-#### 标题 : HEADER
+## 标题 : HEADER
 
 标题的 depth 一定不是 -1 ，否则就是错误
     
-#### 表格 : TABLE
+## 表格 : TABLE
 
 表格的父子结构必须是
 
@@ -84,7 +89,7 @@ OBJ       | 嵌入式对象
             TD
         
 
-#### 列表 : OL|UL|LI
+## 列表 : OL|UL|LI
 
 列表的父子结构必须
 
@@ -95,7 +100,7 @@ OBJ       | 嵌入式对象
                     PARAGRAPH
                     PARAGRAPH
 
-#### 缩进块 : BLOCKQUOTE
+## 缩进块 : BLOCKQUOTE
 
     BLOCKQUOTE
         P
@@ -106,23 +111,23 @@ OBJ       | 嵌入式对象
 
 即，`BLOCKQUOTE` 带来缩进，其中的 P 节点承载内容
 
-#### 代码 : CODE
+## 代码 : CODE
 
 * 代码里的 content 会是纯文本
 * 对于 \n 敏感，认为是换行
 * 属性 `code-type` 可选，为进一步说明代码的格式内容
     
-#### 嵌入式对象 : OBJ
+## 嵌入式对象 : OBJ
 
 * content 会被认为是一段 JSON 字符串，描述这个对象
 
-#### 原始HTML代码 : HTML
+## 原始HTML代码 : HTML
 
 * 里面的内容会在 HTML 输出时输出，否则会忽略
 * 解析时，会替换内部的占位符以及图片链接和超链接做相应的替换
 
 
-### 关于 ZDocEle
+# 关于 ZDocEle
 
 > 下面让我们只关注一个普通段落 ...
 
@@ -159,7 +164,7 @@ SUB    | 脚注
         }
     }
 
-### 弱弱的总结一下
+# 弱弱的总结一下
 
 总之，zDoc 项目就是提供各种解析器(ZDocParser)，可以将:
 

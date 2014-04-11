@@ -1,8 +1,12 @@
-zDoc工作目录约定
-=====
+---
+title  : zDoc工作目录约定
+author : zozoh(zozohtnt@gmail.com)
+tags :
+- zDoc
+---
 
-## 顶级目录结构
-    
+# 顶级目录结构
+
 zDoc 假想你的工作目录由如下结构组成
 
     [imgs]       # 存放你所有的图片文件，zDoc 会全部 copy 到目标目录
@@ -16,7 +20,8 @@ zDoc 假想你的工作目录由如下结构组成
     readme.md     
     aboutus.zdoc
     
-## _tmpl 目录
+
+## `_tmpl` 目录
 
 这个目录就是给 `ZDocTemplateFactory` 的实现类使用的模板目录。
 具体如何获取模板，由实现类决定，下面我就用默认提供的 `FreemarkerTemplateFactory` 
@@ -67,7 +72,7 @@ zDoc 假想你的工作目录由如下结构组成
     ...
 
 
-## _libs 目录
+## `_libs` 目录
 
 和 `_tmpl` 目录基本一样 ...
 
@@ -117,7 +122,7 @@ zDoc 假想你的工作目录由如下结构组成
     # ~ 结束变量声明
     
 
-## 关于标签
+# 关于标签
 
 ![](render_by_tags.png)
 

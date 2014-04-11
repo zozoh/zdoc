@@ -232,8 +232,8 @@ public class ZDocHome {
                 // 填充索引的关键属性
                 if (null != zi.docRoot()) {
                     ZDocAttrs attrs = zi.docRoot().attrs();
-                    zi.updateAuthors(attrs.getList(String.class, "author"));
-                    zi.updateVerifier(attrs.getList(String.class, "verifier"));
+                    zi.updateAuthors(attrs.getStringList("author"));
+                    zi.updateVerifier(attrs.getStringList("verifier"));
                     zi.title(attrs.getString("title", zi.title()));
 
                     // 检查标签

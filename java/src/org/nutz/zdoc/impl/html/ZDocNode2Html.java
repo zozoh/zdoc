@@ -147,7 +147,7 @@ public class ZDocNode2Html {
         sb.append("<pre code-type=\""
                   + nd.attrs().getString("code-type", "unknown")
                   + "\">\n");
-        sb.append(nd.text().replace("<", "&lt;"));
+        sb.append(nd.text().replace("<", "&lt;").replace(">", "&gt;"));
         sb.append("</pre>");
     }
 
@@ -222,7 +222,9 @@ public class ZDocNode2Html {
     }
 
     private void eleAsQuote(StringBuilder sb, ZDocEle ele) {
-        sb.append("<code>").append(ele.text()).append("</code>");
+        sb.append("<code>")
+          .append(ele.text().replace("<", "&lt;").replace(">", "&gt;"))
+          .append("</code>");
     }
 
     private void eleAsInline(StringBuilder sb, ZDocEle ele, Rendering ing) {

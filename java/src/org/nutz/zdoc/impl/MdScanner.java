@@ -57,6 +57,9 @@ public class MdScanner extends AbstractScanner {
                     block._add(line);
                     while (null != (str = _read_line(ing))) {
                         line = new ZLine(str).evalIndent();
+                        // 空行，直接退出
+                        if(line.indent==0)
+                            break;
                         line.indent--;
                         line.space -= 4;
                         if (Strings.isBlank(str) || line.indent >= block.indent) {

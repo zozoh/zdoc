@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<doc title="zDoc手册" author="zozoh(zozohtnt@gmail.com)">
+    <doc path="syntax.md"/>
+    <doc path="pages.md"/>
+    <doc path="parsing_data.md"/>
+    <doc path="parsing_am.md"/>
+    <doc path="rendering.md"/>
+</doc>
