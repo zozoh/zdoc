@@ -363,7 +363,9 @@ public class ZDocHome {
             zi2.parent(zi)
                .path(Xmls.getAttr(ele2, "path"))
                .docBase(Xmls.getAttr(ele2, "doc-base"));
-            ZFile zf2 = ((ZDir) zf).check(zi2.docBase());
+            String ph = zi2.docBase();
+            log.debugf("check : %s", ph);
+            ZFile zf2 = ((ZDir) zf).check(ph);
             _read_index_from_element(zi2, zf2, ele2);
         }
     }
