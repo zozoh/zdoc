@@ -157,7 +157,11 @@ public class RenderToHtml extends RenderTo {
         if (!Strings.isBlank(tagPath)) {
             log.infof("make tags >> %s/*", tagPath);
             // 得到文档模板对象
-            ZDocRule rule = checkRule(tagPath);
+            ZDocRule rule = getRule(tagPath);
+            if (null == rule) {
+                log.warnf("No rule for '%s' when genTagPages", tagPath);
+                return;
+            }
             ZDocTemplate tmpl = ing.tfa().getTemplte(rule.key());
 
             NutMap page = new NutMap();
@@ -331,7 +335,12 @@ public class RenderToHtml extends RenderTo {
                             if (null == imgf) {
                                 log.warnf("  !!! img no found '%s'", src);
                             } else {
-                                String oph = _aph + "/" + src;
+                                String oph;
+                                if (Strings.isBlank(_aph)) {
+                                    oph = src;
+                                } else {
+                                    oph = _aph + "/" + src;
+                                }
                                 ing.medias.put(oph, imgf);
                             }
                         }

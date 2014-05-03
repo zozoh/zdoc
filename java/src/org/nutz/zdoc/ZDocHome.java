@@ -288,6 +288,13 @@ public class ZDocHome {
         return rules;
     }
 
+    public ZDocRule getRule(String rph) {
+        for (ZDocRule rule : rules)
+            if (rule.match(rph))
+                return rule;
+        return null;
+    }
+
     public ZDocRule checkRule(String rph) {
         for (ZDocRule rule : rules)
             if (rule.match(rph))
