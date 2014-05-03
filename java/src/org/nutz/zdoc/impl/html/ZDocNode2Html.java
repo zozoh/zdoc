@@ -187,7 +187,8 @@ public class ZDocNode2Html {
         ZLinkInfo linfo = ele.linkInfo("src");
         String src = null == linfo ? ele.src() : linfo.link();
         String apath = ele.attrString("apath");
-        if (src.toLowerCase().matches("^[a-z]+://.+$")) {
+        if (Strings.isBlank(apath)
+            || src.toLowerCase().matches("^[a-z]+://.+$")) {
             sb.append("<img src=\"").append(src).append('"');
         } else {
             sb.append("<img src=\"")
