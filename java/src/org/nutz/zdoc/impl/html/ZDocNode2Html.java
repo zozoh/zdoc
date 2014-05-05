@@ -258,13 +258,14 @@ public class ZDocNode2Html {
             tagNames.add("span");
         }
         // ....................................................
+        // 得到链接属性
+        ZLinkInfo linfo = ele.linkInfo("href");
+        String href = null == linfo ? ele.href() : linfo.link();
+        // ....................................................
         // 输出开始标签
         if (!tagNames.isEmpty()) {
-            ZLinkInfo linfo = null;
             sb.append("<").append(tagNames.get(0));
             if (ele.hasAttr("href")) {
-                linfo = ele.linkInfo("href");
-                String href = null == linfo ? ele.href() : linfo.link();
                 String apath = ele.attrString("apath");
 
                 if (href.toLowerCase().matches("^[a-z]+://.+$")) {
@@ -293,7 +294,7 @@ public class ZDocNode2Html {
         // ....................................................
         // 输出内容
         if (ing.limit <= 0) {
-            sb.append(ele.text());
+            sb.append(Strings.sBlank(ele.text(), href));
         }
         // 有限制（为了输出文档摘要）
         else {
