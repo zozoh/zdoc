@@ -60,6 +60,10 @@ public class ZDocNode2Html {
                                               "h" + Math.min(6, nd.depth()));
         sb.append("<" + tagName + ">");
         {
+            // 生成页内锚点
+            String anm = nd.text().replaceAll("[ \t\n]", "_");
+            sb.append("<a name=\"").append(anm).append("\"></a>");
+            // 输出标题内容
             joinEles(sb, nd, ing);
         }
         sb.append("</" + tagName + ">");
@@ -268,7 +272,8 @@ public class ZDocNode2Html {
             if (ele.hasAttr("href")) {
                 String apath = ele.attrString("apath");
 
-                if (href.toLowerCase().matches("^[a-z]+://.+$")) {
+                if (href.startsWith("#")
+                    || href.toLowerCase().matches("^[a-z]+://.+$")) {
                     sb.append(" href=\"").append(href).append('"');
                 } else {
                     sb.append(" href=\"")
