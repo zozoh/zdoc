@@ -77,8 +77,35 @@ public class ZDocNode2Html {
 
     private void nodeAsParagraph(StringBuilder sb, ZDocNode nd, Rendering ing) {
         _join_newline_of_node(sb, nd, ing);
-        sb.append("<p>");
-        this.joinEles(sb, nd, ing);
+        // 如果本段仅仅包括一个 IMG 元素，那么输出 DIV
+        // 所以先搜搜看
+        boolean onlyOneImg = true;
+        int img = 0;
+        for (ZDocEle ele : nd.eles()) {
+            if (ele.is(ZDocEleType.IMG)) {
+                if (img > 0) {
+                    onlyOneImg = false;
+                    break;
+                } else {
+                    img = 1;
+                }
+            } else if (Strings.isBlank(ele.text()) && !ele.hasAttr("href")) {
+                continue;
+            } else {
+                onlyOneImg = false;
+                break;
+            }
+        }
+        if (onlyOneImg) {
+            sb.append("<div class=\"pa-img\">");
+            joinEles(sb, nd, ing);
+            sb.append("</div>");
+        }
+        // 否则当做普通段落
+        else {
+            sb.append("<p>");
+            joinEles(sb, nd, ing);
+        }
     }
 
     private void nodeAsBlockquote(StringBuilder sb, ZDocNode nd, Rendering ing) {
