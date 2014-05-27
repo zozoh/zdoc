@@ -52,8 +52,8 @@ public class ZLine {
     }
 
     public ZLine evalIndent() {
-        // 非空白行才要计算缩进
-        if (!Strings.isBlank(origin)) {
+        // 非空行才要计算缩进
+        if (!Strings.isEmpty(origin)) {
             // 数数行的缩进
             space = 0;
             int i = 0;

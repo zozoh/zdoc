@@ -83,10 +83,10 @@ public class MdScannerTest extends AbstractScannerTest {
     public void test_simple_scan() {
         String s = "#A";
         s += "\n    aaa";
-        s += "\n";
+        s += "\n    ";
         s += "\n    cccc";
         s += "\n        dddd";
-        s += "\n";
+        s += "\n    ";
         s += "\n#B";
         s += "\nbbb";
         // .............................................

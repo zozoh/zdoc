@@ -6,6 +6,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.nutz.am.AmFactory;
 import org.nutz.zdoc.BaseParserTest;
+import org.nutz.zdoc.Rendering;
 import org.nutz.zdoc.ZDocNode;
 import org.nutz.zdoc.impl.MdParser;
 
@@ -24,8 +25,10 @@ public class MarkdownNode2HtmlTest extends BaseParserTest {
         String s = "X**Y**Z";
         ZDocNode root = PS(s);
         // ...........................................
+        Rendering ing = new Rendering(null, null);
+        // ...........................................
         StringBuilder sb = new StringBuilder();
-        nd2html.joinNode(sb, root.node(0), null);
+        nd2html.joinNode(sb, root.node(0), ing);
         // ...........................................
         assertEquals("\n<p>X<b>Y</b>Z", sb.toString());
     }

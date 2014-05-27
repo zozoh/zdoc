@@ -17,6 +17,16 @@ public class ZDocAmTest extends AmTest {
         fa = NewAmFactory("zdoc");
         rootAmName = "zdocParagraph";
     }
+    
+    @Test
+    public void test_simple_abc(){
+        ZDocEle root = _parse("{#888;@Column}");
+        root.normalize();
+        assertEquals(0, root.children().size());
+        
+        _Cele(root, -1, INLINE, "@Column", null);
+        _Cmap("{'color':'#888'}", root.style());
+    }
 
     @Test
     public void test_em_in_link() {

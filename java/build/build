@@ -1,7 +1,7 @@
 #! /bin/sh
 export JAVA_HOME=~/opt/java/jdk
-export DEPS=~/nutz/deps/zdoc
-export OUTPUT=~/nutz/output
-export PROJECT_HOME=~/workspace/git/github/zdoc/java
+export DEPS=~/workspace/danoo/deps
+export OUTPUT=~/workspace/danoo/output
+export PROJECT_HOME=~/workspace/git/danoo/xwoods/strato/ssapi
 
-ant -f $PROJECT_HOME/build/build.xml
+. ~/bin/java-build

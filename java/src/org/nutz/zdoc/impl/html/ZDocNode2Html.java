@@ -260,9 +260,16 @@ public class ZDocNode2Html {
     }
 
     private void eleAsInline(StringBuilder sb, ZDocEle ele, Rendering ing) {
+        // 如果又没链接，又没 text，则输出一个空格
+        String href = ele.href();
+        if (Strings.isBlank(href) && Strings.isBlank(ele.text())) {
+            sb.append(' ');
+            return;
+        }
+
         // 要生成的标签
         ArrayList<String> tagNames = new ArrayList<String>(10);
-        if (ele.hasAttr("href")) {
+        if (!Strings.isBlank(href)) {
             tagNames.add("a");
         } else if (ele.is(ZDocEleType.SUB)) {
             tagNames.add("sub");
@@ -291,7 +298,8 @@ public class ZDocNode2Html {
         // ....................................................
         // 得到链接属性
         ZLinkInfo linfo = ele.linkInfo("href");
-        String href = null == linfo ? ele.href() : linfo.link();
+        if (null != linfo)
+            href = linfo.link();
         // ....................................................
         // 输出开始标签
         if (!tagNames.isEmpty()) {
