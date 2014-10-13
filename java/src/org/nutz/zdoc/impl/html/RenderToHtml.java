@@ -217,7 +217,10 @@ public class RenderToHtml extends RenderTo {
 
     private void genIndexPage(final Rendering ing, final ZDocIndex base) {
         if (!Strings.isBlank(this.htmlIndexPath)) {
-            String oph = base.rpath() + "/" + htmlIndexPath;
+            String oph = Strings.isBlank(base.rpath()) ? htmlIndexPath
+                                                      : base.rpath()
+                                                        + "/"
+                                                        + htmlIndexPath;
 
             log.infof("++++++++++++++++ make index : %s", oph);
 

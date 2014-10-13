@@ -342,8 +342,9 @@ public class ZDocIndex extends SimpleNode<ZFile> implements
             ss.addFirst(an.path());
         }
 
-        ss.add(path());
-        return Lang.concat("/", ss).toString();
+        if (null != path())
+            ss.add(path());
+        return ss.isEmpty() ? null : Lang.concat("/", ss).toString();
     }
 
     public String bpath() {
