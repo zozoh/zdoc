@@ -22,6 +22,10 @@ public class ZDoc {
 
     public static void main(String[] args) {
         log.infof("zDoc v%s", VERSION);
+        if (args.length < 2) {
+            log.infof("Usage : zDoc [src] [dest]");
+            return;
+        }
         RenderToHtml home = new RenderToHtml(io);
         ZSimpleDir src = new ZSimpleDir(Files.findFile(args[0]));
         ZSimpleDir dest = new ZSimpleDir(Files.createDirIfNoExists(args[1]));
@@ -38,6 +42,8 @@ public class ZDoc {
         ZDocTemplateFactory tfa = new FreemarkerTemplateFactory(home);
         Rendering ing = new Rendering(io, tfa);
         // 设置全局的上下文
+        if (home.topTags == null)
+            home.topTags = new String[0];
         ing.context().setv("siteTitle", home.title);
         ing.context().setv("tags", home.tags);
         ing.context().setv("othersTag", home.othersTag);
