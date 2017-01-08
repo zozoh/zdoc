@@ -175,11 +175,12 @@ public class ZDocNode2Html {
 
     private void nodeAsCode(StringBuilder sb, ZDocNode nd, Rendering ing) {
         _join_newline_of_node(sb, nd, ing);
-        sb.append("<pre code-type=\""
-                  + nd.attrs().getString("code-type", "unknown")
-                  + "\">\n");
-        sb.append(nd.text().replace("<", "&lt;").replace(">", "&gt;"));
-        sb.append("</pre>");
+        sb.append("<div class='code-block'><pre>\n");
+        String codeType = nd.attrs().getString("code-type", "txt");
+        sb.append("<code class='language-" + codeType.toLowerCase() + "'>");
+        sb.append(nd.text().replace("<", "&lt;").replace(">", "&gt;").replace("\t", "    ").trim());
+        sb.append("</code>\n");
+        sb.append("</pre></div>");
     }
 
     private boolean joinEle(StringBuilder sb, ZDocEle ele, Rendering ing) {
