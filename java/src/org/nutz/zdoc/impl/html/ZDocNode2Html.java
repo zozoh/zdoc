@@ -178,7 +178,7 @@ public class ZDocNode2Html {
         sb.append("<div class='code-block'><pre>\n");
         String codeType = nd.attrs().getString("code-type", "txt");
         sb.append("<code class='language-" + codeType.toLowerCase() + "'>");
-        sb.append(nd.text().replace("<", "&lt;").replace(">", "&gt;").replace("\t", "    ").trim());
+        sb.append(nd.text().replace("<", "&lt;").replace(">", "&gt;").replace("\t", "    "));
         sb.append("</code>\n");
         sb.append("</pre></div>");
     }
