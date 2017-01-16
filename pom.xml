@@ -1,12 +1,46 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>org.nutx</groupId>
+	<groupId>org.nutz</groupId>
 	<artifactId>zdoc</artifactId>
-	<version>1.r.60-SNAPSHOT</version>
+	<version>1.r.60</version>
+	<name>Nutz Zdoc</name>
+	<description>Good Doc for you</description>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
+	
+	<url>https://nutzam.com</url>
+	<issueManagement>
+		<system>Github Issue</system>
+		<url>https://github.com/nutzam/nutz/issues</url>
+	</issueManagement>
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>http://apache.org/licenses/LICENSE-2.0.txt</url>
+		</license>
+	</licenses>
+	
+	<developers>
+		<developer>
+			<id>zozoh</id>
+			<name>zozoh</name>
+			<email>zozohtnt@gmail.com</email>
+			<url>http://weibo.com/zozoh</url>
+		</developer>
+		<developer>
+			<id>wendal</id>
+			<name>Wendal Chen</name>
+			<email>wendal1985@gmail.com</email>
+			<url>http://wendal.net/</url>
+		</developer>
+	</developers>
+	<scm>
+		<connection>scm:git:git://github.com/nutzam/nutz-vfs.git</connection>
+		<developerConnection>scm:git:git://github.com/nutzam/nutz-vfs.git</developerConnection>
+		<url>git://github.com/nutzam/nutz-vfs.git</url>
+	</scm>
 	<build>
 		<sourceDirectory>java/src</sourceDirectory>
 		<testSourceDirectory>java/test</testSourceDirectory>
@@ -53,6 +87,14 @@
 					</archive>
 				</configuration>
 			</plugin>
+			
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<configuration>
+					<additionalparam>-Xdoclint:none</additionalparam>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 	<repositories>
@@ -76,7 +118,7 @@
 		<dependency>
 			<groupId>org.nutz</groupId>
 			<artifactId>nutz</artifactId>
-			<version>1.r.60-SNAPSHOT</version>
+			<version>1.r.60</version>
 		</dependency>
 		<dependency>
 			<groupId>org.freemarker</groupId>
@@ -86,7 +128,7 @@
 		<dependency>
 			<groupId>org.nutz</groupId>
 			<artifactId>nutz-vfs</artifactId>
-			<version>1.r.60-SNAPSHOT</version>
+			<version>1.r.60</version>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
